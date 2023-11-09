@@ -1,0 +1,11 @@
+<footer class="footer">
+    {{- if site.Copyright }}
+    <span>{{ site.Copyright | markdownify }}</span>
+    {{- else }}
+    <span>&copy; {{ now.Year }} <a href="{{ "" | absLangURL }}">{{ site.Title }}</a></span>
+    {{- end }}
+    <span>
+        ◉ <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+        ◉ 萌ICP备 <a href="https://icp.gov.moe/?keyword=20223303" rel="noopener" target="_blank">20223303</a> 号
+    </span>
+</footer>

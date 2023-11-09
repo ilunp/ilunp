@@ -1,0 +1,17 @@
+[[main]]
+    identifier = "Search"
+    name = "🔎"
+    url = "/search/"
+    weight = 10
+
+[[main]]
+    identifier = "Archives"
+    name = "归档"
+    url = "/archives/"
+    weight = 30
+
+[[main]]
+    identifier = "About"
+    name = "关于"
+    url = "/about/"
+    weight = 50

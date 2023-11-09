@@ -1,0 +1,30 @@
+DateFormat = '2006-01-02'
+
+defaultTheme = 'auto'
+# defaultTheme = 'light'
+# defaultTheme = 'dark'
+
+ShowWordCount = true
+ShowReadingTime = true
+ShowPostNavLinks = true
+ShowCodeCopyButtons = true
+ShowAllPagesInArchive = true
+
+[profileMode]
+    enabled = true
+
+    title = "ILUNP'S Blog"
+    subtitle = '枕头里藏满了发霉的梦，梦里住满了无法拥抱的人。'
+    imageUrl = 'https://avatars.githubusercontent.com/u/46992517?v=4'
+
+    [[profileMode.buttons]]
+        name = '画廊'
+        url = '/gallery/'
+
+    [[socialIcons]]
+        name = 'github'
+        url = 'https://github.com/ilunp'
+
+    [[socialIcons]]
+        name = 'email'
+        url = 'mailto:ilunp@qq.com'
