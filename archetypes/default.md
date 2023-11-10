@@ -5,10 +5,11 @@ date = {{ .Date }}
 
 draft = true
 showToc = true
+mathjax = true
 hidemeta = false
 
 author = ['ILUNP']
-tage = ['untagged','draft']
+tags = ['untagged']
 categories = ['']
 
 [cover]

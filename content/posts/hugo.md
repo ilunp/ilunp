@@ -5,10 +5,11 @@ date = 2023-11-10T00:42:18+08:00
 
 draft = false
 showToc = true
+mathjax = true
 hidemeta = false
 
 author = ['ILUNP']
-tage = ['untagged','draft']
+tags = ['untagged','draft']
 categories = ['']
 
 [cover]
@@ -24,3 +25,6 @@ Hugo is one of the most popular open-source static site generators. With its ama
 
 ### Hello World
 New Beginning,new life...
+
+### MathJAX 
+NPF Rule : $t=\frac{(35N+30p)}{f}$
