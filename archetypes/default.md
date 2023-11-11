@@ -13,9 +13,9 @@ tags = ['untagged']
 categories = ['']
 
 [cover]
-    image = '<image path(./posts/hugo/hugo-logo-wide.svg)/url>'
+    image = '<image path(hugo-logo-wide.svg)/url>'
     alt = '<alt text>'
     caption = '<text>'
-    relative = false
+    relative = true
     
 +++

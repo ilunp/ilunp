@@ -1,0 +1,17 @@
+<p>
+    {{ $image := .Page.Resources.GetMatch (printf "%s" (.Destination | safeURL)) }}
+    {{ if $image }}
+    {{ $rawImage := $image }}
+    {{ $image := $image.Resize (print $image.Width "x" $image.Height " " "webp" " " "q50") }}
+    <a href="{{ $rawImage.RelPermalink}}" target="view_window">
+        <picture>
+            <source type="image/webp" srcset="{{ $image.RelPermalink }}">
+            <img src="{{ $rawImage.RelPermalink }}" alt="{{ .Text }}" loading="lazy" {{ with .Title}} title="{{ . }}" {{ end }} />
+        </picture>
+    </a>
+    {{ else }}
+    <a href="{{ .Destination | safeURL }}" target="view_window">
+        <img src="{{ .Destination | safeURL }}" alt="{{ .Text }}" loading="lazy" {{ with .Title}} title="{{ . }}" {{ end }} />
+    </a>
+    {{ end }}
+</p>
