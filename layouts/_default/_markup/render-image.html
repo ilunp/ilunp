@@ -1,17 +1,35 @@
 <p>
     {{ $image := .Page.Resources.GetMatch (printf "%s" (.Destination | safeURL)) }}
+    {{ $text := .Text | default "untitled" }}
+    {{ $title := .Title | default "untitled" }}
     {{ if $image }}
     {{ $rawImage := $image }}
-    {{ $image := $image.Resize (print $image.Width "x" $image.Height " " "webp" " " "q50") }}
-    <a href="{{ $rawImage.RelPermalink}}" target="view_window">
-        <picture>
-            <source type="image/webp" srcset="{{ $image.RelPermalink }}">
-            <img src="{{ $rawImage.RelPermalink }}" alt="{{ .Text }}" loading="lazy" {{ with .Title}} title="{{ . }}" {{ end }} />
-        </picture>
-    </a>
-    {{ else }}
-    <a href="{{ .Destination | safeURL }}" target="view_window">
-        <img src="{{ .Destination | safeURL }}" alt="{{ .Text }}" loading="lazy" {{ with .Title}} title="{{ . }}" {{ end }} />
-    </a>
+    {{ with $rawImage.Exif }}
+        {{ if eq .Tags.Orientation 1 }}
+        {{ $image := $image.Resize (print $image.Width "x" $image.Height " webp q50 ") }}
+        {{ else if eq .Tags.Orientation 3 }}
+        {{ $image := $image.Resize (print $image.Width "x" $image.Height " webp q50 r180 ") }}
+        {{ else if eq .Tags.Orientation 6 }}
+        {{ $image := $image.Resize (print $image.Height "x" $image.Width " webp q50 r270 ") }}
+        {{ else if eq .Tags.Orientation 8 }}
+        {{ $image := $image.Resize (print $image.Height "x" $image.Width " webp q50 r90 ") }}
+        <a href="{{ $rawImage.RelPermalink}}" target="view_window">
+            <picture>
+                <source type="image/webp" srcset="{{ $image.RelPermalink }}">
+                <img src="{{ $rawImage.RelPermalink }}" {{ with $text }}alt="{{ . }}"{{ end }} loading="lazy" {{ with $title}} title="{{ . }}" {{ end }} />
+            </picture>
+        </a>
+        {{ end }}{{ else }}
+        {{ $image := $image.Resize (print $image.Width "x" $image.Height " webp q50 ") }}
+        <a href="{{ $rawImage.RelPermalink}}" target="view_window">
+            <picture>
+                <source type="image/webp" srcset="{{ $image.RelPermalink }}">
+                <img src="{{ $rawImage.RelPermalink }}" {{ with $text }}alt="{{ . }}"{{ end }} loading="lazy" {{ with $title}} title="{{ . }}" {{ end }} />
+            </picture>
+        </a>
+        {{ end }}{{ else }}
+        <a href="{{ .Destination | safeURL }}" target="view_window">
+            <img src="{{ .Destination | safeURL }}" {{ with $text }}alt="{{ . }}"{{ end }} loading="lazy" {{ with $title}} title="{{ . }}" {{ end }} />
+        </a>
     {{ end }}
 </p>
