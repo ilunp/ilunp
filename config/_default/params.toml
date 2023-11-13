@@ -10,6 +10,8 @@ ShowPostNavLinks = true
 ShowCodeCopyButtons = true
 ShowAllPagesInArchive = true
 
+cdnPrefix = "https://cdn.jsdelivr.net/gh/ilunp/ilunp@gh-pages"
+
 [profileMode]
     enabled = true
 

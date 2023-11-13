@@ -2,6 +2,10 @@
     {{ $image := .Page.Resources.GetMatch (printf "%s" (.Destination | safeURL)) }}
     {{ $text := .Text | default "untitled" }}
     {{ $title := .Title | default "untitled" }}
+    <!-- CDN Prefix -->
+    {{ $cdnPrefix := .Page.Site.Params.cdnPrefix | safeURL }}
+    {{ $cdnPrefixUrl := $cdnPrefix }}
+    {{ $cdnPrefixRawUrl := $cdnPrefix }}
     {{ if $image }}
     {{ $rawImage := $image }}
     {{ with $rawImage.Exif }}
@@ -13,21 +17,43 @@
         {{ $image := $image.Resize (print $image.Height "x" $image.Width " webp q50 r270 ") }}
         {{ else if eq .Tags.Orientation 8 }}
         {{ $image := $image.Resize (print $image.Height "x" $image.Width " webp q50 r90 ") }}
-        <a href="{{ $rawImage.RelPermalink}}" target="view_window">
+        {{ $cdnPrefixRawUrl := (print $cdnPrefix $rawImage.RelPermalink) }}
+        {{ $cdnPrefixUrl := (print $cdnPrefix $image.RelPermalink) }}
+        {{ if $cdnPrefix }}
+        <a href="{{ $cdnPrefixRawUrl }}" target="view_window">
+            <picture>
+                <source type="image/webp" srcset="{{ $cdnPrefixUrl }}">
+                <img src="{{ $cdnPrefixRawUrl }}" {{ with $text }}alt="{{ . }}"{{ end }} loading="lazy" {{ with $title}} title="{{ . }}" {{ end }} />
+            </picture>
+        </a>
+        {{ else }}
+        <a href="{{ $rawImage.RelPermalink }}" target="view_window">
             <picture>
                 <source type="image/webp" srcset="{{ $image.RelPermalink }}">
                 <img src="{{ $rawImage.RelPermalink }}" {{ with $text }}alt="{{ . }}"{{ end }} loading="lazy" {{ with $title}} title="{{ . }}" {{ end }} />
             </picture>
         </a>
-        {{ end }}{{ else }}
+        {{ end }}
+        {{ end }}
+    {{ else }}
         {{ $image := $image.Resize (print $image.Width "x" $image.Height " webp q50 ") }}
-        <a href="{{ $rawImage.RelPermalink}}" target="view_window">
+        {{ if $cdnPrefix }}
+        <a href="{{ $cdnPrefixRawUrl }}" target="view_window">
+            <picture>
+                <source type="image/webp" srcset="{{ $cdnPrefixUrl }}">
+                <img src="{{ $cdnPrefixRawUrl }}" {{ with $text }}alt="{{ . }}"{{ end }} loading="lazy" {{ with $title}} title="{{ . }}" {{ end }} />
+            </picture>
+        </a>
+        {{ else }}
+        <a href="{{ $rawImage.RelPermalink }}" target="view_window">
             <picture>
                 <source type="image/webp" srcset="{{ $image.RelPermalink }}">
                 <img src="{{ $rawImage.RelPermalink }}" {{ with $text }}alt="{{ . }}"{{ end }} loading="lazy" {{ with $title}} title="{{ . }}" {{ end }} />
             </picture>
         </a>
-        {{ end }}{{ else }}
+        {{ end }}
+        {{ end }}
+    {{ else }}
         <a href="{{ .Destination | safeURL }}" target="view_window">
             <img src="{{ .Destination | safeURL }}" {{ with $text }}alt="{{ . }}"{{ end }} loading="lazy" {{ with $title}} title="{{ . }}" {{ end }} />
         </a>
