@@ -27,5 +27,37 @@
   {{- end }}
 </header>
 
+<div class="gallerys">
+  <div class="gallery">
+    {{ range (sort (.Resources.ByType "image") "Name" "desc") }}
+    {{ $name := path.Base .Name  }}
+    {{ with .Resize (print .Width "x" .Height " webp q25 " ) }}
+    {{ $cdnPrefix := $.Site.Params.cdnPrefix | safeURL }}
+    {{ $cdnPrefixUrl := (print $cdnPrefix .RelPermalink) }}
+    {{ if $cdnPrefix }}
+    <picture>
+      <source type="image/webp" srcset="{{ $cdnPrefixUrl }}">
+      <img loading='lazy' decoding="async" src="{{ $cdnPrefixUrl }}" />
+    </picture>
+    {{ else }}
+    <picture>
+      <source type="image/webp" srcset="{{ .RelPermalink }}">
+      <img loading='lazy' decoding="async" src="{{ .RelPermalink }}" />
+    </picture>
+    {{ end }}
+    {{ end }}
+    {{ end }}
+  </div>
+</div>
 
+<style>
+  .gallerys {width:100%;}
+  .gallery {
+    columns: 3;
+    column-gap: 10px;
+    @media (max-width: 1280px) {columns: 2;}
+    @media (max-width: 860px) {columns: 1;}
+    & picture {display: block;margin-bottom: 10px;}
+  }
+</style>
 {{- end }}{{/* end main */}}
