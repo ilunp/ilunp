@@ -5,6 +5,12 @@
     weight = 10
 
 [[main]]
+    identifier = "Posts"
+    name = "文章"
+    url = "/posts/"
+    weight = 20
+
+[[main]]
     identifier = "Archives"
     name = "归档"
     url = "/archives/"
