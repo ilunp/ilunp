@@ -23,6 +23,10 @@ cdnPrefix = "https://cdn.jsdelivr.net/gh/ilunp/ilunp@gh-pages"
         name = '画廊'
         url = '/gallery/'
 
+    [[profileMode.buttons]]
+        name = '⿴典典'
+        url = '#'
+
     [[socialIcons]]
         name = 'github'
         url = 'https://github.com/ilunp'
@@ -30,3 +34,7 @@ cdnPrefix = "https://cdn.jsdelivr.net/gh/ilunp/ilunp@gh-pages"
     [[socialIcons]]
         name = 'email'
         url = 'mailto:ilunp@qq.com'
+
+    [[socialIcons]]
+        name = 'rss'
+        url = 'index.xml'

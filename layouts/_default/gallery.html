@@ -27,37 +27,51 @@
   {{- end }}
 </header>
 
-<div class="gallerys">
-  <div class="gallery">
-    {{ range (sort (.Resources.ByType "image") "Name" "desc") }}
-    {{ $name := path.Base .Name  }}
+<div class="gallery">
+  {{ range (sort (.Resources.ByType "image") "Name" "desc") }}
+    {{ if ( .Name | findRE "\\.(gif|GIF|jpg|JPG|jpeg|JPEG|png|PNG)") }}
     {{ with .Resize (print .Width "x" .Height " webp q25 " ) }}
-    {{ $cdnPrefix := $.Site.Params.cdnPrefix | safeURL }}
-    {{ $cdnPrefixUrl := (print $cdnPrefix .RelPermalink) }}
-    {{ if $cdnPrefix }}
-    <picture>
-      <source type="image/webp" srcset="{{ $cdnPrefixUrl }}">
-      <img loading='lazy' decoding="async" src="{{ $cdnPrefixUrl }}" />
-    </picture>
-    {{ else }}
-    <picture>
-      <source type="image/webp" srcset="{{ .RelPermalink }}">
-      <img loading='lazy' decoding="async" src="{{ .RelPermalink }}" />
-    </picture>
+      <!-- CDN Prefix -->
+      {{ if $.Site.Params.cdnPrefix }}
+      {{ $cdnPrefix := $.Site.Params.cdnPrefix | safeURL }}
+      {{ $cdnPrefixUrl := (print $cdnPrefix .RelPermalink) }}
+      <a data-src="{{ $cdnPrefixUrl }}" data-fancybox="gallery">
+      <picture>
+        <source type="image/webp" srcset="{{ $cdnPrefixUrl }}">
+        <img loading='lazy' decoding="async" src="{{ $cdnPrefixUrl }}" alt="{{ .Name }}" />
+      </picture>
+      </a>
+      {{ else }}
+      <a data-src="{{ .RelPermalink }}" data-fancybox="gallery">
+      <picture>
+        <source type="image/webp" srcset="{{ .RelPermalink }}">
+        <img loading='lazy' decoding="async" src="{{ .RelPermalink }}" alt="{{ .Name }}" />
+      </picture>
+      </a>
+      {{ end }}
     {{ end }}
     {{ end }}
-    {{ end }}
-  </div>
-</div>
 
-<style>
-  .gallerys {width:100%;}
-  .gallery {
-    columns: 3;
-    column-gap: 10px;
-    @media (max-width: 1280px) {columns: 2;}
-    @media (max-width: 860px) {columns: 1;}
-    & picture {display: block;margin-bottom: 10px;}
-  }
-</style>
+    {{ if ( .Name | findRE "\\.(webp|WEBP)") }}
+      <!-- CDN Prefix -->
+      {{ if $.Site.Params.cdnPrefix }}
+      {{ $cdnPrefix := $.Site.Params.cdnPrefix | safeURL }}
+      {{ $cdnPrefixUrl := (print $cdnPrefix .RelPermalink) }}
+      <a data-src="{{ $cdnPrefixUrl }}" data-fancybox="gallery">
+      <picture>
+        <source type="image/webp" srcset="{{ $cdnPrefixUrl }}">
+        <img loading='lazy' decoding="async" src="{{ $cdnPrefixUrl }}" alt="{{ .Name }}" />
+      </picture>
+      </a>
+      {{ else }}
+      <a data-src="{{ .RelPermalink }}" data-fancybox="gallery">
+      <picture>
+        <source type="image/webp" srcset="{{ .RelPermalink }}">
+        <img loading='lazy' decoding="async" src="{{ .RelPermalink }}" alt="{{ .Name }}" />
+      </picture>
+      </a>
+      {{ end }}
+    {{ end }}
+  {{ end }}
+</div>
 {{- end }}{{/* end main */}}

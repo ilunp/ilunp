@@ -2,3 +2,5 @@ baseURL = 'https://ilunp.com/'
 languageCode = 'zh'
 title = 'ILUNP'
 theme = 'PaperMod'
+
+enableEmoji = true

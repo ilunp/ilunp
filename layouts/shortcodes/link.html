@@ -1,0 +1,13 @@
+{{- if .IsNamedParams -}}
+<a class="linkUrl" href={{ .Get "url" }} target="_blank">
+  <div class="linkDiv">
+    <div class="linkImg">
+      <img class="linkLogo" src={{ .Get "logo" }} onerror="this.src='/images/error.svg'"/>
+    </div>
+    <div class="linkInfo">
+      <div class="linkName">{{- .Get "name" -}}</div>
+      <div class="linkWord">{{- .Get "word" -}}</div>
+    </div>
+  </div>
+</a>
+{{- end }}
