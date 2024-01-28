@@ -55,13 +55,13 @@ winget install -e --id GitHub.GitHubDesktop
 # HUGO 初始化命令
 hugo new site ./ -f
 
-# 安装 PaperMod 主题
+# 安装主题 （以 PaperMod 为例）
 git submodule add --depth=1 https://github.com/adityatelange/hugo-PaperMod.git themes/PaperMod
 ```
 使用 VSCode 打开站点配置文件 ``` hugo.toml ``` ，在配置文件中添加配置，并保存编辑：
 
 ```toml
-theme = "PaperMod"
+theme = "PaperMod" #以 PaperMod 为例
 ```
 
 启动 HUGO 开发服务预览站点，``` Ctrl+C ``` 可以停止 HUGO 开发服务。
@@ -122,4 +122,4 @@ jobs:
 ## 推送站点到 Github 存储库
 完成以上工作后可以直接将本地存储库推送至 Github 存储库主分支 ``` main ``` 并等待 `Github Action` 自动部署，该过程会自动创建新的名为 ``` gh-pages ``` 的分支并将生成的静态文件存储在内。
 
-最后通过访问 ``` <username>.github.io ``` 部署在 Github Page 的 HUGO 站点吧！
+最后通过 ``` <username>.github.io ``` 访问部署在 Github Page 的 HUGO 站点吧！

@@ -4,3 +4,8 @@ title = 'ILUNP'
 theme = 'PaperMod'
 
 enableEmoji = true
+
+[markup]
+  [markup.goldmark]
+    [markup.goldmark.renderer]
+      unsafe = true
