@@ -1,4 +1,3 @@
-<div>
     {{ $image := .Page.Resources.GetMatch (printf "%s" (.Destination | safeURL)) }}
     {{ if $image }}
     {{ $rawImage := $image }}
@@ -18,14 +17,14 @@
             {{ $cdnPrefix := .Page.Site.Params.cdnPrefix | safeURL }}
             {{ $cdnPrefixRawUrl := (print $cdnPrefix $rawImage.RelPermalink) }}
             {{ $cdnPrefixUrl := (print $cdnPrefix $image.RelPermalink) }}
-            <a data-src="{{ $cdnPrefixRawUrl }}" data-fancybox>
+            <a data-src="{{ $cdnPrefixRawUrl }}">
                 <picture>
                     <source type="image/webp" srcset="{{ $cdnPrefixUrl }}">
                     <img src="{{ $cdnPrefixRawUrl }}" alt="{{ .Text }}" {{ with .Title}} title="{{ . }}" {{ end }} />
                 </picture>
             </a>
             {{ else }}
-            <a data-src="{{ $rawImage.RelPermalink }}" data-fancybox>
+            <a data-src="{{ $rawImage.RelPermalink }}">
                 <picture>
                     <source type="image/webp" srcset="{{ $image.RelPermalink }}">
                     <img src="{{ $rawImage.RelPermalink }}" alt="{{ .Text }}" {{ with .Title}} title="{{ . }}" {{ end }} />
@@ -34,21 +33,21 @@
             {{ end }}
             {{ end }}
         {{ else }}
-        {{ $image := $image.Resize (print $image.Width "x" $image.Height " webp q50 ") }}
+        {{ $image := $image.Resize (print $image.Width "x" $image.Height " webp q20 ") }}
         
             <!-- CDN Prefix -->
             {{ if .Page.Site.Params.cdnPrefix }}
             {{ $cdnPrefix := .Page.Site.Params.cdnPrefix | safeURL }}
-            {{ $cdnPrefixRawUrl := $cdnPrefix }}
-            {{ $cdnPrefixUrl := $cdnPrefix }}
-            <a data-src="{{ $cdnPrefixRawUrl }}" data-fancybox>
+            {{ $cdnPrefixRawUrl := (print $cdnPrefix $image.RelPermalink) }}
+            {{ $cdnPrefixUrl := (print $cdnPrefix $image.RelPermalink) }}
+            <a data-src="{{ $cdnPrefixRawUrl }}">
                 <picture>
                     <source type="image/webp" srcset="{{ $cdnPrefixUrl }}">
                     <img src="{{ $cdnPrefixRawUrl }}" alt="{{ .Text }}" {{ with .Title}} title="{{ . }}" {{ end }} />
                 </picture>
             </a>
             {{ else }}
-            <a data-src="{{ $rawImage.RelPermalink }}" data-fancybox>
+            <a data-src="{{ $rawImage.RelPermalink }}">
                 <picture>
                     <source type="image/webp" srcset="{{ $image.RelPermalink }}">
                     <img src="{{ $rawImage.RelPermalink }}" alt="{{ .Text }}" {{ with .Title}} title="{{ . }}" {{ end }} />
@@ -57,8 +56,7 @@
             {{ end }}
         {{ end }}
     {{ else }}
-        <a data-src="{{ .Destination | safeURL }}" data-fancybox>
+        <a data-src="{{ .Destination | safeURL }}">
             <img src="{{ .Destination | safeURL }}" alt="{{ .Text }}" {{ with .Title}} title="{{ . }}" {{ end }} />
         </a>
     {{ end }}
-</div>

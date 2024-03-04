@@ -48,14 +48,15 @@ $$ p=\frac{传感器长边尺寸}{传感器长边像素}×1000 $$
 
 ## 计算工具：
 
-> 这里提供了一个计算器
+> 这里提供了一个计算器, 只需要输入参数即可获得曝光时间
 
 - 多数情况下 **像素间距 ($p$)** 值取 $5$ 即可
-|   |   |   |
-|:---:|:---:|:---:|
-|   |   | ( 35 <input type="number" id="aperture" style="width: 50px;background-color: #FFF2" placeholder=" N"> + 30 <input type="number" id="pixelPitch" style="width: 50px;background-color: #FFF2" placeholder=" p"> )  |
-| <span id="speed">00</span>  | <button onclick="calculateNPF()" style="width: 50px;background-color: #FFF5"><=</button>  | ------------------------------------  |
-|   |   | <input type="number" id="focalLength" style="width: 50px;background-color: #FFF2" placeholder=" f">  |
+|   | 描述  |  | |
+|:---:|:---:|:---:|:---:|
+| $N$ | 光圈值  | <input type="number" id="aperture" style="width: 50px;background-color: #FFF2" placeholder=" N"> | |
+| $p$ | 像素间距(μm) | <input type="number" id="pixelPitch" style="width: 50px;background-color: #FFF2" placeholder=" p"> | |
+| $f$ | 焦距(mm) | <input type="number" id="focalLength" style="width: 50px;background-color: #FFF2" placeholder=" f"> | |
+| $t$ | 快门(s)  | <span id="speed">00</span> | <button onclick="calculateNPF()" style="width: 50px;background-color: #FFF5">GO</button> |
 
 
 <script>

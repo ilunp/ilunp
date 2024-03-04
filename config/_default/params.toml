@@ -20,12 +20,8 @@ cdnPrefix = "https://cdn.jsdelivr.net/gh/ilunp/ilunp@gh-pages"
     imageUrl = 'https://avatars.githubusercontent.com/u/46992517?v=4'
 
     [[profileMode.buttons]]
-        name = '画廊'
-        url = '/gallery/'
-
-    [[profileMode.buttons]]
-        name = '⿴典典'
-        url = '#'
+        name = 'New Domain!'
+        url = 'https://canio.cn/'
 
     [[socialIcons]]
         name = 'github'

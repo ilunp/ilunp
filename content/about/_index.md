@@ -9,7 +9,7 @@ hidemeta = true
 | :-: | :- |
 | 昵称： | ILUNP (NACGNOH) |
 | 现居： | 广西省桂林市 |
-| 邮箱： | [ilunp@qq.com](MAILTO:ILUNP.COM) |
+| 邮箱： | [ilunp@qq.com](MAILTO:ilunp@qq.com) |
 
 ---
 
