@@ -3,5 +3,5 @@ NPF 公式： $$ t=\frac{(35N+30p)}{f} $$
 $t$ : 快门(s)，控制曝光时间 $N$ : 光圈值，控制进光量 $p$ : 像素间距(μm) $f$ : 焦距(mm)，控制视野范围 根据公式可以知道 快门 ($t$) 是由$N$ 、 $p$ 、 $f$ 决定，因此叫NPF法则。
 像素间距公式： $$ p=\frac{传感器长边尺寸}{传感器长边像素}×1000 $$
 以 NIKON Z6Ⅱ 的FX模式下为例： $$ p=\frac{36}{6048}×1000≈5.95(μm) $$ 以 NIKON Z7Ⅱ 的FX模式下为例： $$ p=\frac{36}{8256}×1000≈4.36(μm) $$ 其余的 $N$、$f$ 直接代入NPF法则公式。
-计算工具： 这里提供了一个计算器
-多数情况下 像素间距 ($p$) 值取 $5$ 即可 ( 35 + 30 ) 00 &amp;lt;= &amp;mdash;&amp;mdash;&amp;mdash;&amp;mdash;&amp;mdash;&amp;mdash;&amp;mdash;&amp;mdash;&amp;mdash;&amp;mdash;&amp;mdash;&amp;mdash;</description></item></channel></rss>
+计算工具： 这里提供了一个计算器, 只需要输入参数即可获得曝光时间
+多数情况下 像素间距 ($p$) 值取 $5$ 即可 描述 $N$ 光圈值 $p$ 像素间距(μm) $f$ 焦距(mm) $t$ 快门(s) 00 GO</description></item></channel></rss>
