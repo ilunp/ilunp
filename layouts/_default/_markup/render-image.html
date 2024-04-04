@@ -20,18 +20,18 @@
             <a data-src="{{ $cdnPrefixRawUrl }}">
                 <picture>
                     <source type="image/webp" srcset="{{ $cdnPrefixUrl }}">
-                    <img src="{{ $cdnPrefixRawUrl }}" alt="{{ .Text }}" {{ with .Title}} title="{{ . }}" {{ end }} />
+                    <img loading="lazy" src="{{ $cdnPrefixRawUrl }}" alt="{{ .Text }}" {{ with .Title}} title="{{ . }}" {{ end }} />
                 </picture>
             </a>
             {{ else }}
             <a data-src="{{ $rawImage.RelPermalink }}">
                 <picture>
                     <source type="image/webp" srcset="{{ $image.RelPermalink }}">
-                    <img src="{{ $rawImage.RelPermalink }}" alt="{{ .Text }}" {{ with .Title}} title="{{ . }}" {{ end }} />
+                    <img loading="lazy" src="{{ $rawImage.RelPermalink }}" alt="{{ .Text }}" {{ with .Title}} title="{{ . }}" {{ end }} />
                 </picture>
             </a>
             {{ end }}
-            {{ end }}
+        {{ end }}
         {{ else }}
         {{ $image := $image.Resize (print $image.Width "x" $image.Height " webp q20 ") }}
         
@@ -43,20 +43,20 @@
             <a data-src="{{ $cdnPrefixRawUrl }}">
                 <picture>
                     <source type="image/webp" srcset="{{ $cdnPrefixUrl }}">
-                    <img src="{{ $cdnPrefixRawUrl }}" alt="{{ .Text }}" {{ with .Title}} title="{{ . }}" {{ end }} />
+                    <img loading="lazy" src="{{ $cdnPrefixRawUrl }}" alt="{{ .Text }}" {{ with .Title}} title="{{ . }}" {{ end }} />
                 </picture>
             </a>
             {{ else }}
             <a data-src="{{ $rawImage.RelPermalink }}">
                 <picture>
                     <source type="image/webp" srcset="{{ $image.RelPermalink }}">
-                    <img src="{{ $rawImage.RelPermalink }}" alt="{{ .Text }}" {{ with .Title}} title="{{ . }}" {{ end }} />
+                    <img loading="lazy" src="{{ $rawImage.RelPermalink }}" alt="{{ .Text }}" {{ with .Title}} title="{{ . }}" {{ end }} />
                 </picture>
             </a>
             {{ end }}
         {{ end }}
-    {{ else }}
+        {{ else }}
         <a data-src="{{ .Destination | safeURL }}">
-            <img src="{{ .Destination | safeURL }}" alt="{{ .Text }}" {{ with .Title}} title="{{ . }}" {{ end }} />
+            <img loading="lazy" src="{{ .Destination | safeURL }}" alt="{{ .Text }}" {{ with .Title}} title="{{ . }}" {{ end }} />
         </a>
     {{ end }}

@@ -5,11 +5,14 @@ description = '『 有一个故事，不期而遇，戛然而止 』'
 hidemeta = true
 +++
 
-|     |    |
-| :-: | :- |
-| 昵称： | ILUNP (NACGNOH) |
-| 现居： | 广西省桂林市 |
-| 邮箱： | [ilunp@qq.com](MAILTO:ilunp@qq.com) |
+---
+#### 关于本人：
+
+> |  O  |  O  |
+> | :-: | :-: |
+> | 昵称： | ILUNP (NACGNOH) |
+> | 现居： | 北京市昌平区 |
+> | 邮箱： | [ilunp@qq.com](MAILTO:ilunp@qq.com) |
 
 ---
 
@@ -24,3 +27,17 @@ hidemeta = true
 #### 项目：
 
 {{< link url="https://github.com/ilunp/Unturned-L.S.C" logo="https://patchwiki.biligame.com/images/wiki/7/77/f7q50ezdb2a6vyaxhdz2jjy02e6qkee.png" name="Unturned-L.S.C" word="Unturned(未转变者)中文简体本地化" >}}
+
+### 捐助我：
+<div align="center"> {{< figure src="/images/WECHATQRC.png" width="40%" >}}</div>
+
+---
+
+> |  赞助人  |  金额   |  时间  |  备注  |
+> | :-: | :-: | :-: | :-: |
+> | ... | ... | ... | ... |
+> | ... | ... | ... | ... |
+> | ... | ... | ... | ... |
+> | ... | ... | ... | ... |
+> | --- | --- | --- | --- |
+> |     |  0  |     |     |
