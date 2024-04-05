@@ -5,7 +5,13 @@ theme = 'PaperMod'
 
 enableEmoji = true
 
+timeout = 300000
+
 [markup]
   [markup.goldmark]
     [markup.goldmark.renderer]
       unsafe = true
+    [markup.goldmark.parser]
+      wrapStandAloneImageWithinParagraph = true
+    [markup.goldmark.parser.attribute]
+      block = true
