@@ -3,7 +3,7 @@
 {{ $title := .Text | default "UNNAMED" }}
 
 <!-- IF - $image -->
-{{ if $image }}
+{{ if not (in (slice "gif" "svg" "webp") $image.MediaType.Suffixes) }}
     {{ $rawImage := $image }}
     <!-- WITH - $rawImage -->
     {{ with $rawImage.Exif }}
@@ -16,67 +16,33 @@
         {{ $image := $image.Resize (print $image.Height "x" $image.Width " webp q50 r270 ") }}
         {{ else if eq .Tags.Orientation 8 }}
         {{ $image := $image.Resize (print $image.Height "x" $image.Width " webp q50 r90 ") }}
+        {{ end }}
+        <!-- IF END - .Exif -->
+    <!-- WITH ELSE - $rawImage -->
+    {{ else }} 
+        {{ $image := $image.Resize (print $image.Width "x" $image.Height " webp") }}
+    <!-- WITH END - $rawImage -->
+    {{ end }}
 
-            <!-- IF - CDN Prefix: true -> CDN Url -->
-            {{ if $cdnPrefix }} 
-            <!-- rawImg CDN Url -->
-            {{ $cdnPrefixRawUrl := (print $cdnPrefix $rawImage.RelPermalink) }} 
-            <!-- fixImg(WEBP) CDN Url -->
-            {{ $cdnPrefixUrl := (print $cdnPrefix $image.RelPermalink) }} 
-            <a data-nanogallery2-lightbox href="{{ $cdnPrefixRawUrl }}">
-                <!-- <img loading="lazy" data-ngsrc="{{ $cdnPrefixRawUrl }}" data-ngThumb="{{ $cdnPrefixUrl }}" {{- with $title }}data-ngdesc="{{ $title }}"{{ end -}} /> -->
-                <picture>
-                    <source type="image/webp" srcset="{{ $cdnPrefixUrl }}">
-                    <img loading="lazy" data-ngsrc="{{ $cdnPrefixRawUrl }}" data-ngThumb="{{ $cdnPrefixUrl }}" {{- with $title }}data-ngdesc="{{ $title }}"{{ end -}} />
-                </picture>
-            </a>
-            <!-- IF ELSE - CDN Prefix: flase -> RAW Url -->
-            {{ else }}  
-            <a data-nanogallery2-lightbox href="{{ $rawImage.RelPermalink }}">
-                <!-- <img loading="lazy" data-ngsrc="{{ $rawImage.RelPermalink }}" data-ngThumb="{{ $image.RelPermalink }}" {{- with $title }}data-ngdesc="{{ $title }}"{{ end -}} /> -->
-                <picture>
-                    <source type="image/webp" srcset="{{ $image.RelPermalink }}">
-                    <img loading="lazy" data-ngsrc="{{ $rawImage.RelPermalink }}" data-ngThumb="{{ $image.RelPermalink }}" {{- with $title }}data-ngdesc="{{ $title }}"{{ end -}} />
-                </picture>
-            </a>
-            {{ end }}
-            <!-- IF END - CDN Prefix -->
-        <!-- IF ELSE - .Exif -->
-        {{ else }} 
-            {{ $image := $image.Resize (print $image.Width "x" $image.Height " webp") }}
-
-            <!-- IF - CDN Prefix: true -> CDN Url -->
-            {{ if $cdnPrefix }} 
-            <!-- rawImg CDN Url -->
-            {{ $cdnPrefixRawUrl := (print $cdnPrefix $rawImage.RelPermalink) }} 
-            <!-- fixImg(WEBP) CDN Url -->
-            {{ $cdnPrefixUrl := (print $cdnPrefix $image.RelPermalink) }} 
-            <a data-nanogallery2-lightbox href="{{ $cdnPrefixRawUrl }}">
-                <!-- <img loading="lazy" data-ngsrc="{{ $cdnPrefixRawUrl }}" data-ngThumb="{{ $cdnPrefixUrl }}" {{- with $title }}data-ngdesc="{{ $title }}"{{ end -}} /> -->
-                <picture>
-                    <source type="image/webp" srcset="{{ $cdnPrefixUrl }}">
-                    <img loading="lazy" data-ngsrc="{{ $cdnPrefixRawUrl }}" data-ngThumb="{{ $cdnPrefixUrl }}" {{- with $title }}data-ngdesc="{{ $title }}"{{ end -}} />
-                </picture>
-            </a>
-            <!-- IF ELSE - CDN Prefix: flase -> RAW Url -->
-            {{ else }}  
-            <a data-nanogallery2-lightbox href="{{ $rawImage.RelPermalink }}">
-                <!-- <img loading="lazy" data-ngsrc="{{ $rawImage.RelPermalink }}" data-ngThumb="{{ $image.RelPermalink }}" {{- with $title }}data-ngdesc="{{ $title }}"{{ end -}} /> -->
-                <picture>
-                    <source type="image/webp" srcset="{{ $image.RelPermalink }}">
-                    <img loading="lazy" data-ngsrc="{{ $rawImage.RelPermalink }}" data-ngThumb="{{ $image.RelPermalink }}" {{- with $title }}data-ngdesc="{{ $title }}"{{ end -}} />
-                </picture>
-            </a>
-            {{ end }}
-            <!-- IF END - CDN Prefix -->
-            {{ end }}
-            <!-- IF END - .Exif -->
+    {{ if $cdnPrefix }}
+        <!-- rawImg CDN Url -->
+        {{ $cdnPrefixRawUrl := (print $cdnPrefix $rawImage.RelPermalink) }} 
+        <!-- fixImg(WEBP) CDN Url -->
+        {{ $cdnPrefixUrl := (print $cdnPrefix $image.RelPermalink) }}
+        <!-- IF ELSE - CDN Prefix: flase -> RAW Url -->
+        <a data-nanogallery2-lightbox href="{{ $cdnPrefixRawUrl }}">
+            <img loading="lazy" data-ngsrc="{{ $cdnPrefixRawUrl }}" data-ngThumb="{{ $cdnPrefixUrl }}" {{- with $title }}data-ngdesc="{{ $title }}"{{ end -}} />
+        </a>
         {{ else }}
-        <!-- WITH ELSE - $rawImage -->
-        <a data-nanogallery2-lightbox href="{{ .Destination | safeURL }}">
-            <img loading="lazy" srcset="{{ .Destination | safeURL }}" {{- with .Text }}title="{{ .Text }}"{{ end -}} />
+        <a data-nanogallery2-lightbox href="{{ $rawImage.RelPermalink }}">
+            <img loading="lazy" data-ngsrc="{{ $rawImage.RelPermalink }}" data-ngThumb="{{ $image.RelPermalink }}" {{- with $title }}data-ngdesc="{{ $title }}"{{ end -}} />
         </a>
     {{ end }}
-    <!-- WITH END - $rawImage -->
+    <!-- IF END - CDN Prefix -->
+     <!-- IF ELSE - $image -->
+    {{ else }}
+    <a data-nanogallery2-lightbox href="{{ .Destination | safeURL }}">
+        <img loading="lazy" srcset="{{ .Destination | safeURL }}" {{- with .Text }}title="{{ .Text }}"{{ end -}} />
+    </a>
 {{ end }}
 <!-- IF END - $image -->

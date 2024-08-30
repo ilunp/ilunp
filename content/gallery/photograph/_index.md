@@ -12,23 +12,64 @@ enableGallery = true
 
 ---
 {{<rawhtml>}}
-<div data-nanogallery2='{
-    "thumbnailWidth": "200",
+<div data-nanogallery2='{"thumbnailOpenInLightox": true,
+    "galleryTheme": {
+        "thumbnail": {
+            "borderRadius": "8px"
+        }
+    },
+    "viewerTools": {
+        "topLeft": "pageCounter, playPauseButton",
+        "topRight": "downloadButton, rotateLeft, rotateRight, , closeButton"
+    },
+    "thumbnailLabel": {
+        "display": "false",
+        "position": "overImage",
+        "titleFontSize": "0.8em"
+    },
+    "thumbnailHoverEffect2": "image_scale_1.00_1.20|label_backgroundColor_rgba(0,0,0,0.4)_rgba(0,0,0,0)",
+    "eventsDebounceDelay": 10,
+    "thumbnailDisplayOutsideScreen": true,
+    "thumbnailL1BorderHorizontal": 0,
+    "thumbnailL1BorderVertical": 0,
+    "thumbnailDisplayTransition":          "scaleUp",
+    "thumbnailDisplayTransitionDuration":  500,  
+    "thumbnailDisplayInterval":            30,
+    "galleryDisplayMode": "fullContent",
+    "galleryDisplayTransition":            "none",
+    "galleryDisplayTransitionDuration":    500,
+    "thumbnailWidth": 300,
     "thumbnailHeight": "auto",
-    "thumbnailAlignment": "center",
-    "thumbnailOpenImage": true,
-    "thumbnailAlignment": "fillWidth",
-    "thumbnailDisplayTransition": "slideUp2",
-    "thumbnailDisplayTransitionDuration": 500,
-    "thumbnailDisplayInterval": 30,
-    "thumbnailHoverEffect2": "image_scale_1.00_1.10",
-    "touchAnimation": true,
-    "touchAutoOpenDelay": 800,
-    "galleryDisplayMode": "rotateX",
-    "galleryDisplayTransitionDuration": 500,
-    "gallerySorting": "random"}'>
+    "thumbnailGutterHeight": 4,
+    "thumbnailGutterWidth": 4}'>
 {{</rawhtml>}}
-![](202305171614_2.jpg)![](202305172247_1.jpg)![](202306051814_2.jpg)![](202310291713_2.jpg)![](202304130651_2.jpg) ![](202305111813_1.jpg) ![](202305111813_2.jpg) ![](202305111831_1.jpg) ![](202305210752_1.jpg) ![](202306051814_1.jpg) ![](202307151926_2.jpg) ![](202308182110_1.jpg) ![](202309051403_1.jpg) ![](202309112054_2.jpg) ![](202309252109_1.jpg) ![](202310151553_1.jpg) ![](202310151557_1.jpg) ![](202310171706_1.jpg) ![](202311051653_1.jpg) ![](202311051956_2.jpg) ![](202311251716_3.jpg)
+![alt text](202305171614_2.jpg)
+![alt text](202305172247_1.jpg)
+![alt text](202306051814_2.jpg)
+![alt text](202310291713_2.jpg)
+![alt text](202304130651_2.jpg)
+![alt text](202305111813_1.jpg)
+![alt text](202305111813_2.jpg)
+![alt text](202305111831_1.jpg)
+![alt text](202305210752_1.jpg)
+![alt text](202306051814_1.jpg)
+![alt text](202307151926_2.jpg)
+![alt text](202308182110_1.jpg)
+![alt text](202309051403_1.jpg)
+![alt text](202309112054_2.jpg)
+![alt text](202309252109_1.jpg)
+![alt text](202310151553_1.jpg)
+![alt text](202310151557_1.jpg)
+![alt text](202310171706_1.jpg)
+![alt text](202311051653_1.jpg)
+![alt text](202311051956_2.jpg)
+![alt text](202311251716_3.jpg)
+![alt text](202305210728_1.jpg)
+![alt text](202112061804_1.jpg)
+![alt text](202112051805_1.jpg)
+![alt text](202111091834_1.jpg)
+![alt text](202108081926_1.jpg)
+![alt text](202102211651_1.jpg)
 {{<rawhtml>}}
 </div>
 {{</rawhtml>}}
