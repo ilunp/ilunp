@@ -1,9 +1,96 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>HUGO on ILUNP</title><link>https://ilunp.com/tags/hugo/</link><description>Recent content in HUGO on ILUNP</description><generator>Hugo -- 0.133.1</generator><language>zh</language><lastBuildDate>Sun, 28 Jan 2024 22:49:31 +0800</lastBuildDate><atom:link href="https://ilunp.com/tags/hugo/index.xml" rel="self" type="application/rss+xml"/><item><title>HUGO 食用系列（二）</title><link>https://ilunp.com/posts/hugo/hugo_setup/</link><pubDate>Sun, 28 Jan 2024 22:49:31 +0800</pubDate><guid>https://ilunp.com/posts/hugo/hugo_setup/</guid><description>修改目录结构： 完成初始化 HUGO 后，生成默认的目录结构为：
-my-site/ ... └── hugo.toml &amp;lt;-- 站点配置文件 为了使目录看起来清爽一些，创建一个父文件夹 config 和一个子文件夹 _default 并把所有的配置文件放在该目录中:
-my-site/ ... ├── config/ &amp;lt;-- 站点配置文件 │ └── _default/ │ └── hugo.toml ... 站点配置文件 HUGO 完成初始化后默认创建的站点 hugo.toml 只有三行配置：
-baseURL = &amp;#39;https://example.org/&amp;#39; languageCode = &amp;#39;en-us&amp;#39; title = &amp;#39;My New Hugo Site&amp;#39; 后续对站点设置时会添加更多的配置项，以 PaperMod 主题的部分配置为例：
-baseURL = &amp;#39;https://example.org/&amp;#39; languageCode = &amp;#39;en-us&amp;#39; title = &amp;#39;My New Hugo Site&amp;#39; theme = &amp;#39;PaperMod&amp;#39; enableEmoji = true [markup] [markup.goldmark] [markup.goldmark.renderer] unsafe = true [params] DateFormat = &amp;#39;2006-01-02&amp;#39; defaultTheme = &amp;#39;auto&amp;#39; # defaultTheme = &amp;#39;light&amp;#39; # defaultTheme = &amp;#39;dark&amp;#39; ShowWordCount = true ShowReadingTime = true ShowPostNavLinks = true ShowCodeCopyButtons = true ShowAllPagesInArchive = true [params.</description></item><item><title>HUGO 食用系列（一）</title><link>https://ilunp.com/posts/hugo/hugo-install/</link><pubDate>Fri, 24 Nov 2023 18:07:22 +0800</pubDate><guid>https://ilunp.com/posts/hugo/hugo-install/</guid><description>采用 Hugo(Extended) + Github Pages + Github Action 部署方案。
-优雅的在 Windows 中安装 HUGO 环境： 现在可以使用 WinGet 包管理器来安装 HUGO 所需的基础环境，只需要在终端（PowerShell）中分别运行以下命令，等待片刻即可：
-# 安装 Hugo Extended winget install Hugo.Hugo.Extended # 安装 Git winget install -e --id Git.Git 安装 Github Desktop 方便文件更改前后的对比，当然 VSCode 也可以做到这些。 # 安装 Github Desktop winget install -e --id GitHub.GitHubDesktop 如果遇到问题，请确认您使用的 Windows 版本安装了 WinGet 包管理器。
-如果没有安装 WinGet 包管理器，请立刻使用传统方法安装 HUGO 环境，不值得过多纠结。
-为 HUGO 创建 Github Pages 仓库： 在 Github 中创建一个名为 &amp;lt;username&amp;gt;.github.io 的存储库。</description></item><item><title>HUGO</title><link>https://ilunp.com/posts/hugo/hugo-hello/</link><pubDate>Fri, 10 Nov 2023 00:42:18 +0800</pubDate><guid>https://ilunp.com/posts/hugo/hugo-hello/</guid><description>Hello World</description></item></channel></rss>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>HUGO on ♪(^∇^*)</title><link>https://ilunp.com/tags/hugo/</link><description>Recent content in HUGO on ♪(^∇^*)</description><generator>Hugo -- 0.135.0</generator><language>zh</language><lastBuildDate>Sun, 28 Jan 2024 22:49:31 +0800</lastBuildDate><atom:link href="https://ilunp.com/tags/hugo/index.xml" rel="self" type="application/rss+xml"/><item><title>HUGO 食用系列（二）</title><link>https://ilunp.com/posts/hugo/hugo_setup/</link><pubDate>Sun, 28 Jan 2024 22:49:31 +0800</pubDate><guid>https://ilunp.com/posts/hugo/hugo_setup/</guid><description>&lt;h2 id="修改目录结构">修改目录结构：&lt;/h2>
+&lt;p>完成初始化 HUGO 后，生成默认的目录结构为：&lt;/p>
+&lt;pre tabindex="0">&lt;code>my-site/
+...
+└── hugo.toml &amp;lt;-- 站点配置文件
+&lt;/code>&lt;/pre>&lt;p>为了使目录看起来清爽一些，创建一个父文件夹 &lt;code>config&lt;/code> 和一个子文件夹 &lt;code>_default&lt;/code> 并把所有的配置文件放在该目录中:&lt;/p>
+&lt;pre tabindex="0">&lt;code>my-site/
+...
+├── config/ &amp;lt;-- 站点配置文件
+│ └── _default/
+│ └── hugo.toml
+...
+&lt;/code>&lt;/pre>&lt;h2 id="站点配置文件">站点配置文件&lt;/h2>
+&lt;p>HUGO 完成初始化后默认创建的站点 &lt;code>hugo.toml&lt;/code> 只有三行配置：&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-toml" data-lang="toml">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#a6e22e">baseURL&lt;/span> = &lt;span style="color:#e6db74">&amp;#39;https://example.org/&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#a6e22e">languageCode&lt;/span> = &lt;span style="color:#e6db74">&amp;#39;en-us&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#a6e22e">title&lt;/span> = &lt;span style="color:#e6db74">&amp;#39;My New Hugo Site&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>后续对站点设置时会添加更多的配置项，以 &lt;code>PaperMod&lt;/code> 主题的部分配置为例：&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-toml" data-lang="toml">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#a6e22e">baseURL&lt;/span> = &lt;span style="color:#e6db74">&amp;#39;https://example.org/&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#a6e22e">languageCode&lt;/span> = &lt;span style="color:#e6db74">&amp;#39;en-us&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#a6e22e">title&lt;/span> = &lt;span style="color:#e6db74">&amp;#39;My New Hugo Site&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#a6e22e">theme&lt;/span> = &lt;span style="color:#e6db74">&amp;#39;PaperMod&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#a6e22e">enableEmoji&lt;/span> = &lt;span style="color:#66d9ef">true&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>[&lt;span style="color:#a6e22e">markup&lt;/span>]
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> [&lt;span style="color:#a6e22e">markup&lt;/span>.&lt;span style="color:#a6e22e">goldmark&lt;/span>]
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> [&lt;span style="color:#a6e22e">markup&lt;/span>.&lt;span style="color:#a6e22e">goldmark&lt;/span>.&lt;span style="color:#a6e22e">renderer&lt;/span>]
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#a6e22e">unsafe&lt;/span> = &lt;span style="color:#66d9ef">true&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>[&lt;span style="color:#a6e22e">params&lt;/span>]
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#a6e22e">DateFormat&lt;/span> = &lt;span style="color:#e6db74">&amp;#39;2006-01-02&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#a6e22e">defaultTheme&lt;/span> = &lt;span style="color:#e6db74">&amp;#39;auto&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"># defaultTheme = &amp;#39;light&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"># defaultTheme = &amp;#39;dark&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#a6e22e">ShowWordCount&lt;/span> = &lt;span style="color:#66d9ef">true&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#a6e22e">ShowReadingTime&lt;/span> = &lt;span style="color:#66d9ef">true&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#a6e22e">ShowPostNavLinks&lt;/span> = &lt;span style="color:#66d9ef">true&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#a6e22e">ShowCodeCopyButtons&lt;/span> = &lt;span style="color:#66d9ef">true&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#a6e22e">ShowAllPagesInArchive&lt;/span> = &lt;span style="color:#66d9ef">true&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>[&lt;span style="color:#a6e22e">params&lt;/span>.&lt;span style="color:#a6e22e">profileMode&lt;/span>]
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#a6e22e">enabled&lt;/span> = &lt;span style="color:#66d9ef">true&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#a6e22e">title&lt;/span> = &lt;span style="color:#e6db74">&amp;#34;My New Hugo Site&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#a6e22e">subtitle&lt;/span> = &lt;span style="color:#e6db74">&amp;#39;My New Hugo Site&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#a6e22e">imageUrl&lt;/span> = &lt;span style="color:#e6db74">&amp;#39;&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> [[&lt;span style="color:#a6e22e">params&lt;/span>.&lt;span style="color:#a6e22e">profileMode&lt;/span>.&lt;span style="color:#a6e22e">buttons&lt;/span>]]
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#a6e22e">name&lt;/span> = &lt;span style="color:#e6db74">&amp;#39;Gallery&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#a6e22e">url&lt;/span> = &lt;span style="color:#e6db74">&amp;#39;/gallery/&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> [[&lt;span style="color:#a6e22e">params&lt;/span>.&lt;span style="color:#a6e22e">socialIcons&lt;/span>]]
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#a6e22e">name&lt;/span> = &lt;span style="color:#e6db74">&amp;#39;rss&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#a6e22e">url&lt;/span> = &lt;span style="color:#e6db74">&amp;#39;index.xml&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>[[&lt;span style="color:#a6e22e">menus&lt;/span>.&lt;span style="color:#a6e22e">main&lt;/span>]]
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#a6e22e">identifier&lt;/span> = &lt;span style="color:#e6db74">&amp;#34;Posts&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#a6e22e">name&lt;/span> = &lt;span style="color:#e6db74">&amp;#34;Posts&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#a6e22e">url&lt;/span> = &lt;span style="color:#e6db74">&amp;#34;/posts/&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#a6e22e">weight&lt;/span> = &lt;span style="color:#ae81ff">20&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>[[&lt;span style="color:#a6e22e">menus&lt;/span>.&lt;span style="color:#a6e22e">main&lt;/span>]]
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#a6e22e">identifier&lt;/span> = &lt;span style="color:#e6db74">&amp;#34;Archives&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#a6e22e">name&lt;/span> = &lt;span style="color:#e6db74">&amp;#34;Archives&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#a6e22e">url&lt;/span> = &lt;span style="color:#e6db74">&amp;#34;/archives/&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#a6e22e">weight&lt;/span> = &lt;span style="color:#ae81ff">30&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>[[&lt;span style="color:#a6e22e">menus&lt;/span>.&lt;span style="color:#a6e22e">main&lt;/span>]]
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#a6e22e">identifier&lt;/span> = &lt;span style="color:#e6db74">&amp;#34;About&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#a6e22e">name&lt;/span> = &lt;span style="color:#e6db74">&amp;#34;About&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#a6e22e">url&lt;/span> = &lt;span style="color:#e6db74">&amp;#34;/about/&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#a6e22e">weight&lt;/span> = &lt;span style="color:#ae81ff">50&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>避免篇幅过长省略了大部分配置项，反正一大长串的配置文件本人是不想再看一眼了，因此需要按照配置关键字对这单个配置文件进行拆分成如下形式：&lt;/p></description></item><item><title>HUGO 食用系列（一）</title><link>https://ilunp.com/posts/hugo/hugo-install/</link><pubDate>Fri, 24 Nov 2023 18:07:22 +0800</pubDate><guid>https://ilunp.com/posts/hugo/hugo-install/</guid><description>&lt;blockquote>
+&lt;p>采用 Hugo(Extended) + Github Pages + Github Action 部署方案。&lt;/p>
+&lt;/blockquote>
+&lt;h2 id="优雅的在-windows-中安装-hugo-环境">优雅的在 Windows 中安装 HUGO 环境：&lt;/h2>
+&lt;p>现在可以使用 WinGet 包管理器来安装 HUGO 所需的基础环境，只需要在终端（PowerShell）中分别运行以下命令，等待片刻即可：&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-powershell" data-lang="powershell">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"># 安装 Hugo Extended&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>winget install Hugo.Hugo.Extended
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"># 安装 Git&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>winget install -e --id Git.Git
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;ul>
+&lt;li>安装 &lt;a href="https://desktop.github.com/">Github Desktop&lt;/a> 方便文件更改前后的对比，当然 VSCode 也可以做到这些。&lt;/li>
+&lt;/ul>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-powershell" data-lang="powershell">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"># 安装 Github Desktop&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>winget install -e --id GitHub.GitHubDesktop
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;blockquote>
+&lt;p>如果遇到问题，请确认您使用的 Windows 版本安装了 &lt;a href="https://learn.microsoft.com/ZH-CN/windows/package-manager/">WinGet&lt;/a> 包管理器。&lt;/p>
+&lt;p>如果没有安装 &lt;a href="https://learn.microsoft.com/ZH-CN/windows/package-manager/">WinGet&lt;/a> 包管理器，请立刻使用传统方法安装 HUGO 环境，不值得过多纠结。&lt;/p>
+&lt;/blockquote>
+&lt;h2 id="为-hugo-创建-github-pages-仓库">为 HUGO 创建 Github Pages 仓库：&lt;/h2>
+&lt;p>在 Github 中创建一个名为 &lt;code>&amp;lt;username&amp;gt;.github.io&lt;/code> 的存储库。&lt;/p></description></item><item><title>HUGO</title><link>https://ilunp.com/posts/hugo/hugo-hello/</link><pubDate>Fri, 10 Nov 2023 00:42:18 +0800</pubDate><guid>https://ilunp.com/posts/hugo/hugo-hello/</guid><description>Hello World</description></item></channel></rss>
