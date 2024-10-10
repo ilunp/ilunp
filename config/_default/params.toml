@@ -10,22 +10,22 @@ ShowPostNavLinks = true
 ShowCodeCopyButtons = true
 ShowAllPagesInArchive = true
 
-cdnPrefix = "https://cdn.jsdelivr.net/gh/ilunp/ilunp@gh-pages"
+cdnPrefix = "https://img.ioo.pw"
 
 [profileMode]
     enabled = true
 
-    title = "ILUNP'S Blog"
-    subtitle = '枕头里藏满了发霉的梦，梦里住满了无法拥抱的人。'
+    title = "NACGNOH"
+    subtitle = '『Just so so...』'
     imageUrl = 'https://avatars.githubusercontent.com/u/46992517?v=4'
 
     [[profileMode.buttons]]
-        name = '🖼️ Gallery!'
+        name = '🖼️'
         url = 'gallery'
 
     [[socialIcons]]
         name = 'github'
-        url = 'https://github.com/ilunp'
+        url = 'https://github.com/ilunp/'
 
     [[socialIcons]]
         name = 'email'

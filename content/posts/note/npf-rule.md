@@ -1,5 +1,5 @@
 +++
-title = 'NPF 法则'
+title = '星空摄影之 NPF 法则'
 description = ''
 date = 2024-02-26T02:48:31+08:00
 
@@ -13,7 +13,7 @@ tags = ['NPF']
 categories = ['']
 
 [cover]
-    image = '<image path(hugo-logo-wide.svg)/url>'
+    image = ''
     alt = '<alt text>'
     caption = '<text>'
     relative = true

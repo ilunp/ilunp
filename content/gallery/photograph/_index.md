@@ -55,6 +55,7 @@ enableGallery = true
 ![alt text](202306051814_1.jpg)
 ![alt text](202307151926_2.jpg)
 ![alt text](202308182110_1.jpg)
+![alt text](202309010813_1.jpg)
 ![alt text](202309051403_1.jpg)
 ![alt text](202309112054_2.jpg)
 ![alt text](202309252109_1.jpg)
