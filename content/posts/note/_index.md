@@ -1,5 +1,5 @@
 +++
-title = '笔记'
+title = '📝 小笔记'
 
 hidemeta = true
 
