@@ -1,6 +1,5 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>📝 小笔记 on ♪(^∇^*)</title><link>https://ilunp.com/posts/note/</link><description>Recent content in 📝 小笔记 on ♪(^∇^*)</description><generator>Hugo -- 0.135.0</generator><language>zh</language><lastBuildDate>Mon, 14 Oct 2024 17:43:23 +0800</lastBuildDate><atom:link href="https://ilunp.com/posts/note/index.xml" rel="self" type="application/rss+xml"/><item><title>注册表 Win32PrioritySeparation 数值</title><link>https://ilunp.com/posts/note/win32priorityseparation/</link><pubDate>Mon, 14 Oct 2024 17:43:23 +0800</pubDate><guid>https://ilunp.com/posts/note/win32priorityseparation/</guid><description>Win32PrioritySeparation数值控制Windows如何分配CPU给各个程序</description></item><item><title>手机连接电脑 Press Any Key to Shutdown 错误</title><link>https://ilunp.com/posts/note/press-any-key-to-shutdown/</link><pubDate>Sat, 12 Oct 2024 11:45:48 +0800</pubDate><guid>https://ilunp.com/posts/note/press-any-key-to-shutdown/</guid><description>&lt;blockquote>
-&lt;p>原文地址：https://miuiver.com/press-any-key-to-shutdown/&lt;/p>
-&lt;/blockquote>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>📝 小笔记 on ♪(^∇^*)</title><link>https://ilunp.com/posts/note/</link><description>Recent content in 📝 小笔记 on ♪(^∇^*)</description><generator>Hugo -- 0.145.0</generator><language>zh</language><lastBuildDate>Mon, 14 Oct 2024 17:43:23 +0800</lastBuildDate><atom:link href="https://ilunp.com/posts/note/index.xml" rel="self" type="application/rss+xml"/><item><title>注册表 Win32PrioritySeparation 数值</title><link>https://ilunp.com/posts/note/win32priorityseparation/</link><pubDate>Mon, 14 Oct 2024 17:43:23 +0800</pubDate><guid>https://ilunp.com/posts/note/win32priorityseparation/</guid><description>Win32PrioritySeparation数值控制Windows如何分配CPU给各个程序</description></item><item><title>手机连接电脑 Press Any Key to Shutdown 错误</title><link>https://ilunp.com/posts/note/press-any-key-to-shutdown/</link><pubDate>Sat, 12 Oct 2024 11:45:48 +0800</pubDate><guid>https://ilunp.com/posts/note/press-any-key-to-shutdown/</guid><description>&lt;blockquote>
+&lt;p>原文地址：https://miuiver.com/press-any-key-to-shutdown/&lt;/p>&lt;/blockquote>
 &lt;h2 id="问题症状">问题症状:&lt;/h2>
 &lt;p>手机进入 Fastboot 模式后用数据线连接电脑，手机左上角显示 press any key to shutdown 信息，电脑识别设备失败。&lt;/p>
 &lt;h2 id="解决方法">解决方法:&lt;/h2>
@@ -29,8 +28,7 @@
 &lt;li>$N$ : 光圈值，控制进光量&lt;/li>
 &lt;li>$p$ : 像素间距(μm)&lt;/li>
 &lt;li>$f$ : 焦距(mm)，控制视野范围&lt;/li>
-&lt;/ul>
-&lt;/blockquote>
+&lt;/ul>&lt;/blockquote>
 &lt;p>根据公式可以知道 &lt;strong>快门 ($t$)&lt;/strong> 是由$N$ 、 $p$ 、 $f$ 决定，因此叫NPF法则。&lt;/p>
 &lt;h3 id="像素间距公式">像素间距公式：&lt;/h3>
 &lt;p>$$ p=\frac{传感器长边尺寸}{传感器长边像素}×1000 $$&lt;/p>
@@ -38,19 +36,16 @@
 &lt;ul>
 &lt;li>以 NIKON Z6Ⅱ 的FX模式下为例：
 $$ p=\frac{36}{6048}×1000≈5.95(μm) $$&lt;/li>
-&lt;/ul>
-&lt;/blockquote>
+&lt;/ul>&lt;/blockquote>
 &lt;blockquote>
 &lt;ul>
 &lt;li>以 NIKON Z7Ⅱ 的FX模式下为例：
 $$ p=\frac{36}{8256}×1000≈4.36(μm) $$&lt;/li>
-&lt;/ul>
-&lt;/blockquote>
+&lt;/ul>&lt;/blockquote>
 &lt;p>其余的 $N$、$f$ 直接代入NPF法则公式。&lt;/p>
 &lt;h2 id="计算工具">计算工具：&lt;/h2>
 &lt;blockquote>
-&lt;p>这里提供了一个计算器, 只需要输入参数即可获得曝光时间&lt;/p>
-&lt;/blockquote>
+&lt;p>这里提供了一个计算器, 只需要输入参数即可获得曝光时间&lt;/p>&lt;/blockquote>
 &lt;ul>
 &lt;li>多数情况下 &lt;strong>像素间距 ($p$)&lt;/strong> 值取 $5$ 即可
 &lt;table>

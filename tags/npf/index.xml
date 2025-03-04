@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>NPF on ♪(^∇^*)</title><link>https://ilunp.com/tags/npf/</link><description>Recent content in NPF on ♪(^∇^*)</description><generator>Hugo -- 0.135.0</generator><language>zh</language><lastBuildDate>Mon, 26 Feb 2024 02:48:31 +0800</lastBuildDate><atom:link href="https://ilunp.com/tags/npf/index.xml" rel="self" type="application/rss+xml"/><item><title>星空摄影之 NPF 法则</title><link>https://ilunp.com/posts/note/npf-rule/</link><pubDate>Mon, 26 Feb 2024 02:48:31 +0800</pubDate><guid>https://ilunp.com/posts/note/npf-rule/</guid><description>&lt;h2 id="npf法则">NPF法则?&lt;/h2>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>NPF on ♪(^∇^*)</title><link>https://ilunp.com/tags/npf/</link><description>Recent content in NPF on ♪(^∇^*)</description><generator>Hugo -- 0.145.0</generator><language>zh</language><lastBuildDate>Mon, 26 Feb 2024 02:48:31 +0800</lastBuildDate><atom:link href="https://ilunp.com/tags/npf/index.xml" rel="self" type="application/rss+xml"/><item><title>星空摄影之 NPF 法则</title><link>https://ilunp.com/posts/note/npf-rule/</link><pubDate>Mon, 26 Feb 2024 02:48:31 +0800</pubDate><guid>https://ilunp.com/posts/note/npf-rule/</guid><description>&lt;h2 id="npf法则">NPF法则?&lt;/h2>
 &lt;p>拍摄星空时会使用慢门来保证画面的曝光量，而我们的地球一直在转动，结果长时间曝光拍出来的星星会带着长长的拖影。为了解决这个问题，人们通过反复试验找到了一些规律性的方法。比如：300 法则、400 法则、500 法则。但是，这些规则是针对在胶片摄影时期，使用较高 ISO 下的 35mm 胶片而设计的规则。而当下大部分人使用的数码相机并不太适用。为了获得更准确的曝光时间，必须考虑焦距和光圈以及传感器尺寸和分辨率，这样的一种方法叫做 NPF 法则。&lt;/p>
 &lt;h3 id="npf-公式">NPF 公式：&lt;/h3>
 &lt;p>$$ t=\frac{(35N+30p)}{f} $$&lt;/p>
@@ -8,8 +8,7 @@
 &lt;li>$N$ : 光圈值，控制进光量&lt;/li>
 &lt;li>$p$ : 像素间距(μm)&lt;/li>
 &lt;li>$f$ : 焦距(mm)，控制视野范围&lt;/li>
-&lt;/ul>
-&lt;/blockquote>
+&lt;/ul>&lt;/blockquote>
 &lt;p>根据公式可以知道 &lt;strong>快门 ($t$)&lt;/strong> 是由$N$ 、 $p$ 、 $f$ 决定，因此叫NPF法则。&lt;/p>
 &lt;h3 id="像素间距公式">像素间距公式：&lt;/h3>
 &lt;p>$$ p=\frac{传感器长边尺寸}{传感器长边像素}×1000 $$&lt;/p>
@@ -17,19 +16,16 @@
 &lt;ul>
 &lt;li>以 NIKON Z6Ⅱ 的FX模式下为例：
 $$ p=\frac{36}{6048}×1000≈5.95(μm) $$&lt;/li>
-&lt;/ul>
-&lt;/blockquote>
+&lt;/ul>&lt;/blockquote>
 &lt;blockquote>
 &lt;ul>
 &lt;li>以 NIKON Z7Ⅱ 的FX模式下为例：
 $$ p=\frac{36}{8256}×1000≈4.36(μm) $$&lt;/li>
-&lt;/ul>
-&lt;/blockquote>
+&lt;/ul>&lt;/blockquote>
 &lt;p>其余的 $N$、$f$ 直接代入NPF法则公式。&lt;/p>
 &lt;h2 id="计算工具">计算工具：&lt;/h2>
 &lt;blockquote>
-&lt;p>这里提供了一个计算器, 只需要输入参数即可获得曝光时间&lt;/p>
-&lt;/blockquote>
+&lt;p>这里提供了一个计算器, 只需要输入参数即可获得曝光时间&lt;/p>&lt;/blockquote>
 &lt;ul>
 &lt;li>多数情况下 &lt;strong>像素间距 ($p$)&lt;/strong> 值取 $5$ 即可
 &lt;table>
