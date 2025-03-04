@@ -28,5 +28,16 @@ hidemeta = true
 
 {{< link url="https://github.com/ilunp/Unturned-L.S.C" logo="https://patchwiki.biligame.com/images/wiki/7/77/f7q50ezdb2a6vyaxhdz2jjy02e6qkee.png" name="Unturned-L.S.C" word="Unturned(未转变者)中文简体本地化" >}}
 
+#### 维基：
+{{< link url="https://wiki.biligame.com/sulfur" logo="https://patchwiki.biligame.com/images/sulfur/8/83/q5t8fsg94kmetad8ls3mbeen4xd9tod.png" name="火湖中文维基" word="SULFUR WIKI" >}}
+
+{{< link url="https://wiki.biligame.com/unturned" logo="https://patchwiki.biligame.com/images/wiki/7/77/f7q50ezdb2a6vyaxhdz2jjy02e6qkee.png" name="未转变者维基" word="Unturned WIKI" >}}
+
 ### 捐助我：
 <div align="center"> {{< figure src="/images/WECHATQRC.png" width="40%" >}}</div>
+
+---
+
+> |  赞助人  |  金额   |  时间  |  备注  |
+> | :-: | :-: | :-: | :-: |
+> | 静静宝贝 | ￥ 20.0 | 2025.3.5 | ♥️ 爱的付出！ ♥️ |

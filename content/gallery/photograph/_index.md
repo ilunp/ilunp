@@ -3,7 +3,6 @@ title = 'Photograph'
 description = '『 刀锐奶化 』'
 
 hidemeta = true
-enableGallery = true
 +++
 
 > |       |
@@ -11,38 +10,6 @@ enableGallery = true
 > | Nikon ℤ 6II & Nikkor ℤ 24-200 f/4-6.3 VR |
 
 ---
-{{<rawhtml>}}
-<div data-nanogallery2='{"thumbnailOpenInLightox": true,
-    "galleryTheme": {
-        "thumbnail": {
-            "borderRadius": "8px"
-        }
-    },
-    "viewerTools": {
-        "topLeft": "pageCounter, playPauseButton",
-        "topRight": "downloadButton, rotateLeft, rotateRight, , closeButton"
-    },
-    "thumbnailLabel": {
-        "display": "false",
-        "position": "overImage",
-        "titleFontSize": "0.8em"
-    },
-    "thumbnailHoverEffect2": "image_scale_1.00_1.20|label_backgroundColor_rgba(0,0,0,0.4)_rgba(0,0,0,0)",
-    "eventsDebounceDelay": 10,
-    "thumbnailDisplayOutsideScreen": true,
-    "thumbnailL1BorderHorizontal": 0,
-    "thumbnailL1BorderVertical": 0,
-    "thumbnailDisplayTransition":          "scaleUp",
-    "thumbnailDisplayTransitionDuration":  500,  
-    "thumbnailDisplayInterval":            30,
-    "galleryDisplayMode": "fullContent",
-    "galleryDisplayTransition":            "none",
-    "galleryDisplayTransitionDuration":    500,
-    "thumbnailWidth": 300,
-    "thumbnailHeight": "auto",
-    "thumbnailGutterHeight": 4,
-    "thumbnailGutterWidth": 4}'>
-{{</rawhtml>}}
 ![alt text](202305171614_2.jpg)
 ![alt text](202305172247_1.jpg)
 ![alt text](202306051814_2.jpg)
@@ -73,6 +40,4 @@ enableGallery = true
 ![alt text](202108081926_1.jpg)
 ![alt text](202102231357_1.jpg)
 ![alt text](202102211651_1.jpg)
-{{<rawhtml>}}
-</div>
-{{</rawhtml>}}
+

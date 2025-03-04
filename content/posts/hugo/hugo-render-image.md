@@ -1,3 +1,28 @@
++++
+title = 'Hugo 食用之 Render Image'
+description = ''
+date = 2025-03-05T01:22:24+08:00
+
+draft = false
+showToc = true
+mathjax = true
+hidemeta = false
+
+author = ['ILUNP']
+tags = ['HUGO', 'WEBP', 'EXIF']
+categories = ['HUGO']
+    
++++
+
+### 前言：
+由于博客部署在```Github Page```上图片加载缓慢😮‍💨，改代码基于```PaperMod```主题的```render-image.html```进行修改，其他主题的渲染方式可能不一样，自行研究吧🧐。
+
+支持将```png、jpg、jpeg、bmp、tiff```的图片格式转换至```Webp```（应该能减少一半的时间☝️），有但没完全有用的CDN前缀设置（因为ta只作用于非```Webp```，还需要保持路径一致），还有啥支持的？啊！我不道啊，以后需要再写吧！😋
+
+### 食用：
+* 在 Hugo 项目的 ```layouts/_default/_markup/``` 目录下创建 ```render-image.html``` 文件，将代码复制到 ```render-image.html``` 文件中。
+
+```go
 {{- $u := urls.Parse .Destination -}}
 {{- $src := $u.String -}}
 {{- $webpSrc := "" -}}
@@ -57,3 +82,25 @@
     {{- end -}}>
 </picture>
 {{- /**/ -}}
+```
+
+#### 配置 CDN 前缀
+
+在 Hugo 配置文件（如 ```params.toml```）中添加 CDN 前缀配置，如果未配置 CDN 前缀，则使用本地路径：
+```toml
+[params]
+  cdnPrefix = "https://cdn.example.com"
+```
+
+#### 使用 Markdown 插入图片
+
+在 Markdown 文件中插入图片时，使用以下语法：
+```markdown
+![Alt Text](image.jpg "Title")
+```
+模板会自动处理图片的 Exif 方向、WebP 转换和 CDN 前缀。
+
+### 参考：
+[Hugo图片自动转webp的方法](https://iblog.ren/posts/hugo_img_to_webp/)
+
+[HUGO DOC - Image processing](https://gohugo.io/content-management/image-processing/)
