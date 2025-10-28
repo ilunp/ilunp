@@ -1,6 +1,7 @@
 {{- $u := urls.Parse .Destination -}}
 {{- $src := $u.String -}}
 {{- $webpSrc := "" -}}
+{{- $wcsrc := "" -}}
 
 {{- if not $u.IsAbs -}}
   {{- $path := strings.TrimPrefix "./" $u.Path }}
@@ -38,9 +39,13 @@
   {{- end -}}
 {{- end -}}
 
-{{- $cdnPrefix := .Page.Site.Params.cdnPrefix -}} 
-{{- if $cdnPrefix -}}
-  {{- $src = printf "%s%s" $cdnPrefix $src -}}
+{{- if not site.Params.webpCloudProxy.enabled -}}
+  {{- $cdnPrefix := .Page.Site.Params.cdnPrefix -}} 
+  {{- if $cdnPrefix -}}
+    {{- $src = printf "%s%s" $cdnPrefix $src -}}
+  {{- end -}}
+{{- else -}}
+  {{- $src = replace ((printf "%s%s" site.BaseURL $src) | safeURL) site.BaseURL site.Params.webpCloudProxy.proxyUrl -}}
 {{- end -}}
 
 {{- $attributes := merge .Attributes (dict "alt" .Text "src" $src "title" (.Title | transform.HTMLEscape) "loading" "lazy") -}}
@@ -56,4 +61,4 @@
       {{- end -}}
     {{- end -}}>
 </picture>
-{{- /**/ -}}
+{{- /* END */ -}}

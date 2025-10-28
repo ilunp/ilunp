@@ -12,6 +12,11 @@ ShowAllPagesInArchive = true
 
 cdnPrefix = "https://img.ioo.pw"
 
+[webpCloudProxy]
+    enabled = true
+    proxyUrl = "https://047a117.webp.li"
+    convertTypeList = ["jpg", "jpeg", "png", "gif"]
+
 [profileMode]
     enabled = true
 

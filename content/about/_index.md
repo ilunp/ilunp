@@ -11,7 +11,7 @@ hidemeta = true
 > |  O  |  O  |
 > | :-: | :-: |
 > | 昵称： | NACGNOH |
-> | 现居： | 未知 |
+> | 现居： | China |
 > | 邮箱： | [ilunp@qq.com](MAILTO:ilunp@qq.com) |
 
 ---
@@ -24,14 +24,12 @@ hidemeta = true
 
 {{< link url="https://ohmyga.cn/" logo="https://avatars.githubusercontent.com/u/40896676?v=4" name="Ohmyga" word="一只想咸鱼翻身的萌新" >}}
 
-#### 项目：
-
-{{< link url="https://github.com/ilunp/Unturned-L.S.C" logo="https://patchwiki.biligame.com/images/wiki/7/77/f7q50ezdb2a6vyaxhdz2jjy02e6qkee.png" name="Unturned-L.S.C" word="Unturned(未转变者)中文简体本地化" >}}
+{{< link url="https://www.zheep.top/" logo="https://www.zheep.top/img/uuz.jpg" name="云端的解构者" word="以我观物，故物皆著我之色彩" >}}
 
 #### 维基：
 {{< link url="https://wiki.biligame.com/sulfur" logo="https://patchwiki.biligame.com/images/sulfur/8/83/q5t8fsg94kmetad8ls3mbeen4xd9tod.png" name="火湖中文维基" word="SULFUR WIKI" >}}
 
-{{< link url="https://wiki.biligame.com/unturned" logo="https://patchwiki.biligame.com/images/wiki/7/77/f7q50ezdb2a6vyaxhdz2jjy02e6qkee.png" name="未转变者维基" word="Unturned WIKI" >}}
+{{< link url="https://wiki.biligame.com/duckov" logo="https://patchwiki.biligame.com/images/duckov/2/26/ii66t08ow71e9de05kbh24uy5o0b3dd.png" name="逃离鸭科夫维基" word="Duckov WIKI" >}}
 
 ### 捐助我：
 <div align="center"> {{< figure src="/images/WECHATQRC.png" width="40%" >}}</div>
@@ -40,4 +38,4 @@ hidemeta = true
 
 > |  赞助人  |  金额   |  时间  |  备注  |
 > | :-: | :-: | :-: | :-: |
-> | 静静宝贝 | ￥ 20.0 | 2025.3.5 | ♥️ 爱的付出！ ♥️ |
+> | 静* | ￥ 20.0 | 2025.3.5 | ♥️ 爱的付出！ ♥️ |
