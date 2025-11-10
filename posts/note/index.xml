@@ -1,92 +1,97 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>📝 小笔记 on ♪(^∇^*)</title><link>https://ilunp.com/posts/note/</link><description>Recent content in 📝 小笔记 on ♪(^∇^*)</description><generator>Hugo -- 0.145.0</generator><language>zh</language><lastBuildDate>Mon, 14 Oct 2024 17:43:23 +0800</lastBuildDate><atom:link href="https://ilunp.com/posts/note/index.xml" rel="self" type="application/rss+xml"/><item><title>注册表 Win32PrioritySeparation 数值</title><link>https://ilunp.com/posts/note/win32priorityseparation/</link><pubDate>Mon, 14 Oct 2024 17:43:23 +0800</pubDate><guid>https://ilunp.com/posts/note/win32priorityseparation/</guid><description>Win32PrioritySeparation数值控制Windows如何分配CPU给各个程序</description></item><item><title>手机连接电脑 Press Any Key to Shutdown 错误</title><link>https://ilunp.com/posts/note/press-any-key-to-shutdown/</link><pubDate>Sat, 12 Oct 2024 11:45:48 +0800</pubDate><guid>https://ilunp.com/posts/note/press-any-key-to-shutdown/</guid><description>&lt;blockquote>
-&lt;p>原文地址：https://miuiver.com/press-any-key-to-shutdown/&lt;/p>&lt;/blockquote>
-&lt;h2 id="问题症状">问题症状:&lt;/h2>
-&lt;p>手机进入 Fastboot 模式后用数据线连接电脑，手机左上角显示 press any key to shutdown 信息，电脑识别设备失败。&lt;/p>
-&lt;h2 id="解决方法">解决方法:&lt;/h2>
-&lt;p>更换电脑 USB 2.0 端口连接便可解决。如果电脑没有 USB 2.0 端口，也可以使用 USB 集线器连接。&lt;/p>
-&lt;p>如果都没有，可以将下面内容用记事本另存为 &lt;code>.bat&lt;/code> 批处理文件，然后以管理员身份运行，之后再连接便不会有问题。&lt;/p>
-&lt;h3 id="add-usb3-fix">add-usb3-fix&lt;/h3>
-&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bat" data-lang="bat">&lt;span style="display:flex;">&lt;span>@&lt;span style="color:#66d9ef">echo&lt;/span> off
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>reg add &lt;span style="color:#e6db74">&amp;#34;HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\usbflags\18D1D00D0100&amp;#34;&lt;/span> /v &lt;span style="color:#e6db74">&amp;#34;osvc&amp;#34;&lt;/span> /t REG_BINARY /d &lt;span style="color:#e6db74">&amp;#34;0000&amp;#34;&lt;/span> /f
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>reg add &lt;span style="color:#e6db74">&amp;#34;HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\usbflags\18D1D00D0100&amp;#34;&lt;/span> /v &lt;span style="color:#e6db74">&amp;#34;SkipContainerIdQuery&amp;#34;&lt;/span> /t REG_BINARY /d &lt;span style="color:#e6db74">&amp;#34;01000000&amp;#34;&lt;/span> /f
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>reg add &lt;span style="color:#e6db74">&amp;#34;HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\usbflags\18D1D00D0100&amp;#34;&lt;/span> /v &lt;span style="color:#e6db74">&amp;#34;SkipBOSDescriptorQuery&amp;#34;&lt;/span> /t REG_BINARY /d &lt;span style="color:#e6db74">&amp;#34;01000000&amp;#34;&lt;/span> /f
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">pause&lt;/span>
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;hr>
-&lt;h3 id="delete-usb3-fix">delete-usb3-fix&lt;/h3>
-&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bat" data-lang="bat">&lt;span style="display:flex;">&lt;span>@&lt;span style="color:#66d9ef">echo&lt;/span> off
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>reg delete &lt;span style="color:#e6db74">&amp;#34;HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\usbflags\18D1D00D0100&amp;#34;&lt;/span> /v &lt;span style="color:#e6db74">&amp;#34;osvc&amp;#34;&lt;/span> /f
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>reg delete &lt;span style="color:#e6db74">&amp;#34;HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\usbflags\18D1D00D0100&amp;#34;&lt;/span> /v &lt;span style="color:#e6db74">&amp;#34;SkipContainerIdQuery&amp;#34;&lt;/span> /f
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>reg delete &lt;span style="color:#e6db74">&amp;#34;HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\usbflags\18D1D00D0100&amp;#34;&lt;/span> /v &lt;span style="color:#e6db74">&amp;#34;SkipBOSDescriptorQuery&amp;#34;&lt;/span> /f
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">pause&lt;/span>
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div></description></item><item><title>星空摄影之 NPF 法则</title><link>https://ilunp.com/posts/note/npf-rule/</link><pubDate>Mon, 26 Feb 2024 02:48:31 +0800</pubDate><guid>https://ilunp.com/posts/note/npf-rule/</guid><description>&lt;h2 id="npf法则">NPF法则?&lt;/h2>
-&lt;p>拍摄星空时会使用慢门来保证画面的曝光量，而我们的地球一直在转动，结果长时间曝光拍出来的星星会带着长长的拖影。为了解决这个问题，人们通过反复试验找到了一些规律性的方法。比如：300 法则、400 法则、500 法则。但是，这些规则是针对在胶片摄影时期，使用较高 ISO 下的 35mm 胶片而设计的规则。而当下大部分人使用的数码相机并不太适用。为了获得更准确的曝光时间，必须考虑焦距和光圈以及传感器尺寸和分辨率，这样的一种方法叫做 NPF 法则。&lt;/p>
-&lt;h3 id="npf-公式">NPF 公式：&lt;/h3>
-&lt;p>$$ t=\frac{(35N+30p)}{f} $$&lt;/p>
-&lt;blockquote>
-&lt;ul>
-&lt;li>$t$ : 快门(s)，控制曝光时间&lt;/li>
-&lt;li>$N$ : 光圈值，控制进光量&lt;/li>
-&lt;li>$p$ : 像素间距(μm)&lt;/li>
-&lt;li>$f$ : 焦距(mm)，控制视野范围&lt;/li>
-&lt;/ul>&lt;/blockquote>
-&lt;p>根据公式可以知道 &lt;strong>快门 ($t$)&lt;/strong> 是由$N$ 、 $p$ 、 $f$ 决定，因此叫NPF法则。&lt;/p>
-&lt;h3 id="像素间距公式">像素间距公式：&lt;/h3>
-&lt;p>$$ p=\frac{传感器长边尺寸}{传感器长边像素}×1000 $$&lt;/p>
-&lt;blockquote>
-&lt;ul>
-&lt;li>以 NIKON Z6Ⅱ 的FX模式下为例：
-$$ p=\frac{36}{6048}×1000≈5.95(μm) $$&lt;/li>
-&lt;/ul>&lt;/blockquote>
-&lt;blockquote>
-&lt;ul>
-&lt;li>以 NIKON Z7Ⅱ 的FX模式下为例：
-$$ p=\frac{36}{8256}×1000≈4.36(μm) $$&lt;/li>
-&lt;/ul>&lt;/blockquote>
-&lt;p>其余的 $N$、$f$ 直接代入NPF法则公式。&lt;/p>
-&lt;h2 id="计算工具">计算工具：&lt;/h2>
-&lt;blockquote>
-&lt;p>这里提供了一个计算器, 只需要输入参数即可获得曝光时间&lt;/p>&lt;/blockquote>
-&lt;ul>
-&lt;li>多数情况下 &lt;strong>像素间距 ($p$)&lt;/strong> 值取 $5$ 即可
-&lt;table>
-&lt;thead>
-&lt;tr>
-&lt;th style="text-align: center">&lt;/th>
-&lt;th style="text-align: center">描述&lt;/th>
-&lt;th style="text-align: center">&lt;/th>
-&lt;th style="text-align: center">&lt;/th>
-&lt;/tr>
-&lt;/thead>
-&lt;tbody>
-&lt;tr>
-&lt;td style="text-align: center">$N$&lt;/td>
-&lt;td style="text-align: center">光圈值&lt;/td>
-&lt;td style="text-align: center">&lt;input type="number" id="aperture" style="width: 50px;background-color: #FFF2" placeholder=" N">&lt;/td>
-&lt;td style="text-align: center">&lt;/td>
-&lt;/tr>
-&lt;tr>
-&lt;td style="text-align: center">$p$&lt;/td>
-&lt;td style="text-align: center">像素间距(μm)&lt;/td>
-&lt;td style="text-align: center">&lt;input type="number" id="pixelPitch" style="width: 50px;background-color: #FFF2" placeholder=" p">&lt;/td>
-&lt;td style="text-align: center">&lt;/td>
-&lt;/tr>
-&lt;tr>
-&lt;td style="text-align: center">$f$&lt;/td>
-&lt;td style="text-align: center">焦距(mm)&lt;/td>
-&lt;td style="text-align: center">&lt;input type="number" id="focalLength" style="width: 50px;background-color: #FFF2" placeholder=" f">&lt;/td>
-&lt;td style="text-align: center">&lt;/td>
-&lt;/tr>
-&lt;tr>
-&lt;td style="text-align: center">$t$&lt;/td>
-&lt;td style="text-align: center">快门(s)&lt;/td>
-&lt;td style="text-align: center">&lt;span id="speed">00&lt;/span>&lt;/td>
-&lt;td style="text-align: center">&lt;button onclick="calculateNPF()" style="width: 50px;background-color: #FFF5">GO&lt;/button>&lt;/td>
-&lt;/tr>
-&lt;/tbody>
-&lt;/table>
-&lt;/li>
-&lt;/ul>
-&lt;script>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>📝 小笔记 on ♪(^∇^*)</title><link>https://ilunp.com/posts/note/</link><description>Recent content in 📝 小笔记 on ♪(^∇^*)</description><generator>Hugo -- 0.152.2</generator><language>zh</language><lastBuildDate>Mon, 14 Oct 2024 17:43:23 +0800</lastBuildDate><atom:link href="https://ilunp.com/posts/note/index.xml" rel="self" type="application/rss+xml"/><item><title>注册表 Win32PrioritySeparation 数值</title><link>https://ilunp.com/posts/note/win32priorityseparation/</link><pubDate>Mon, 14 Oct 2024 17:43:23 +0800</pubDate><guid>https://ilunp.com/posts/note/win32priorityseparation/</guid><description>Win32PrioritySeparation数值控制Windows如何分配CPU给各个程序</description></item><item><title>手机连接电脑 Press Any Key to Shutdown 错误</title><link>https://ilunp.com/posts/note/press-any-key-to-shutdown/</link><pubDate>Sat, 12 Oct 2024 11:45:48 +0800</pubDate><guid>https://ilunp.com/posts/note/press-any-key-to-shutdown/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文地址：https://miuiver.com/press-any-key-to-shutdown/&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h2 id="问题症状"&gt;问题症状:&lt;/h2&gt;
+&lt;p&gt;手机进入 Fastboot 模式后用数据线连接电脑，手机左上角显示 press any key to shutdown 信息，电脑识别设备失败。&lt;/p&gt;
+&lt;h2 id="解决方法"&gt;解决方法:&lt;/h2&gt;
+&lt;p&gt;更换电脑 USB 2.0 端口连接便可解决。如果电脑没有 USB 2.0 端口，也可以使用 USB 集线器连接。&lt;/p&gt;
+&lt;p&gt;如果都没有，可以将下面内容用记事本另存为 &lt;code&gt;.bat&lt;/code&gt; 批处理文件，然后以管理员身份运行，之后再连接便不会有问题。&lt;/p&gt;
+&lt;h3 id="add-usb3-fix"&gt;add-usb3-fix&lt;/h3&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;&lt;code class="language-bat" data-lang="bat"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;@&lt;span style="color:#66d9ef"&gt;echo&lt;/span&gt; off
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;reg add &lt;span style="color:#e6db74"&gt;&amp;#34;HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\usbflags\18D1D00D0100&amp;#34;&lt;/span&gt; /v &lt;span style="color:#e6db74"&gt;&amp;#34;osvc&amp;#34;&lt;/span&gt; /t REG_BINARY /d &lt;span style="color:#e6db74"&gt;&amp;#34;0000&amp;#34;&lt;/span&gt; /f
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;reg add &lt;span style="color:#e6db74"&gt;&amp;#34;HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\usbflags\18D1D00D0100&amp;#34;&lt;/span&gt; /v &lt;span style="color:#e6db74"&gt;&amp;#34;SkipContainerIdQuery&amp;#34;&lt;/span&gt; /t REG_BINARY /d &lt;span style="color:#e6db74"&gt;&amp;#34;01000000&amp;#34;&lt;/span&gt; /f
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;reg add &lt;span style="color:#e6db74"&gt;&amp;#34;HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\usbflags\18D1D00D0100&amp;#34;&lt;/span&gt; /v &lt;span style="color:#e6db74"&gt;&amp;#34;SkipBOSDescriptorQuery&amp;#34;&lt;/span&gt; /t REG_BINARY /d &lt;span style="color:#e6db74"&gt;&amp;#34;01000000&amp;#34;&lt;/span&gt; /f
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#66d9ef"&gt;pause&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;hr&gt;
+&lt;h3 id="delete-usb3-fix"&gt;delete-usb3-fix&lt;/h3&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;&lt;code class="language-bat" data-lang="bat"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;@&lt;span style="color:#66d9ef"&gt;echo&lt;/span&gt; off
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;reg delete &lt;span style="color:#e6db74"&gt;&amp;#34;HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\usbflags\18D1D00D0100&amp;#34;&lt;/span&gt; /v &lt;span style="color:#e6db74"&gt;&amp;#34;osvc&amp;#34;&lt;/span&gt; /f
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;reg delete &lt;span style="color:#e6db74"&gt;&amp;#34;HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\usbflags\18D1D00D0100&amp;#34;&lt;/span&gt; /v &lt;span style="color:#e6db74"&gt;&amp;#34;SkipContainerIdQuery&amp;#34;&lt;/span&gt; /f
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;reg delete &lt;span style="color:#e6db74"&gt;&amp;#34;HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\usbflags\18D1D00D0100&amp;#34;&lt;/span&gt; /v &lt;span style="color:#e6db74"&gt;&amp;#34;SkipBOSDescriptorQuery&amp;#34;&lt;/span&gt; /f
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#66d9ef"&gt;pause&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;</description></item><item><title>星空摄影之 NPF 法则</title><link>https://ilunp.com/posts/note/npf-rule/</link><pubDate>Mon, 26 Feb 2024 02:48:31 +0800</pubDate><guid>https://ilunp.com/posts/note/npf-rule/</guid><description>&lt;h2 id="npf法则"&gt;NPF法则?&lt;/h2&gt;
+&lt;p&gt;拍摄星空时会使用慢门来保证画面的曝光量，而我们的地球一直在转动，结果长时间曝光拍出来的星星会带着长长的拖影。为了解决这个问题，人们通过反复试验找到了一些规律性的方法。比如：300 法则、400 法则、500 法则。但是，这些规则是针对在胶片摄影时期，使用较高 ISO 下的 35mm 胶片而设计的规则。而当下大部分人使用的数码相机并不太适用。为了获得更准确的曝光时间，必须考虑焦距和光圈以及传感器尺寸和分辨率，这样的一种方法叫做 NPF 法则。&lt;/p&gt;
+&lt;h3 id="npf-公式"&gt;NPF 公式：&lt;/h3&gt;
+&lt;p&gt;$$ t=\frac{(35N+30p)}{f} $$&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;ul&gt;
+&lt;li&gt;$t$ : 快门(s)，控制曝光时间&lt;/li&gt;
+&lt;li&gt;$N$ : 光圈值，控制进光量&lt;/li&gt;
+&lt;li&gt;$p$ : 像素间距(μm)&lt;/li&gt;
+&lt;li&gt;$f$ : 焦距(mm)，控制视野范围&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;根据公式可以知道 &lt;strong&gt;快门 ($t$)&lt;/strong&gt; 是由$N$ 、 $p$ 、 $f$ 决定，因此叫NPF法则。&lt;/p&gt;
+&lt;h3 id="像素间距公式"&gt;像素间距公式：&lt;/h3&gt;
+&lt;p&gt;$$ p=\frac{传感器长边尺寸}{传感器长边像素}×1000 $$&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;ul&gt;
+&lt;li&gt;以 NIKON Z6Ⅱ 的FX模式下为例：
+$$ p=\frac{36}{6048}×1000≈5.95(μm) $$&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;ul&gt;
+&lt;li&gt;以 NIKON Z7Ⅱ 的FX模式下为例：
+$$ p=\frac{36}{8256}×1000≈4.36(μm) $$&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;其余的 $N$、$f$ 直接代入NPF法则公式。&lt;/p&gt;
+&lt;h2 id="计算工具"&gt;计算工具：&lt;/h2&gt;
+&lt;blockquote&gt;
+&lt;p&gt;这里提供了一个计算器, 只需要输入参数即可获得曝光时间&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;ul&gt;
+&lt;li&gt;多数情况下 &lt;strong&gt;像素间距 ($p$)&lt;/strong&gt; 值取 $5$ 即可
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th style="text-align: center"&gt;&lt;/th&gt;
+&lt;th style="text-align: center"&gt;描述&lt;/th&gt;
+&lt;th style="text-align: center"&gt;&lt;/th&gt;
+&lt;th style="text-align: center"&gt;&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td style="text-align: center"&gt;$N$&lt;/td&gt;
+&lt;td style="text-align: center"&gt;光圈值&lt;/td&gt;
+&lt;td style="text-align: center"&gt;&lt;input type="number" id="aperture" style="width: 50px;background-color: #FFF2" placeholder=" N"&gt;&lt;/td&gt;
+&lt;td style="text-align: center"&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td style="text-align: center"&gt;$p$&lt;/td&gt;
+&lt;td style="text-align: center"&gt;像素间距(μm)&lt;/td&gt;
+&lt;td style="text-align: center"&gt;&lt;input type="number" id="pixelPitch" style="width: 50px;background-color: #FFF2" placeholder=" p"&gt;&lt;/td&gt;
+&lt;td style="text-align: center"&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td style="text-align: center"&gt;$f$&lt;/td&gt;
+&lt;td style="text-align: center"&gt;焦距(mm)&lt;/td&gt;
+&lt;td style="text-align: center"&gt;&lt;input type="number" id="focalLength" style="width: 50px;background-color: #FFF2" placeholder=" f"&gt;&lt;/td&gt;
+&lt;td style="text-align: center"&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td style="text-align: center"&gt;$t$&lt;/td&gt;
+&lt;td style="text-align: center"&gt;快门(s)&lt;/td&gt;
+&lt;td style="text-align: center"&gt;&lt;span id="speed"&gt;00&lt;/span&gt;&lt;/td&gt;
+&lt;td style="text-align: center"&gt;&lt;button onclick="calculateNPF()" style="width: 50px;background-color: #FFF5"&gt;GO&lt;/button&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;script&gt;
 function calculateNPF() {
 const aperture = parseFloat(document.getElementById("aperture").value);
 const pixelPitch = parseFloat(document.getElementById("pixelPitch").value);
@@ -94,4 +99,4 @@ const focalLength = parseFloat(document.getElementById("focalLength").value);
 const speed= (35 * aperture + 30 * pixelPitch) / focalLength;
 document.getElementById("speed").textContent = speed.toFixed(2);
 }
-&lt;/script></description></item></channel></rss>
+&lt;/script&gt;</description></item></channel></rss>
