@@ -1,5 +1,5 @@
 +++
-title = 'Photograph'
+title = 'Photography'
 description = '『 刀锐奶化 』'
 
 hidemeta = true

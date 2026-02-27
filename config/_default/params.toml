@@ -12,6 +12,9 @@ ShowAllPagesInArchive = true
 
 cdnPrefix = "https://img.ioo.pw"
 
+[author]
+    name = "NACGNOH"
+
 [webpCloudProxy]
     enabled = true
     proxyUrl = "https://047a117.webp.li"
@@ -25,8 +28,8 @@ cdnPrefix = "https://img.ioo.pw"
     imageUrl = 'https://avatars.githubusercontent.com/u/46992517?v=4'
 
     [[profileMode.buttons]]
-        name = '🖼️'
-        url = 'gallery'
+        name = '🈲'
+        url = 'hobby'
 
     [[socialIcons]]
         name = 'github'

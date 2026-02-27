@@ -8,7 +8,7 @@ showToc = true
 mathjax = true
 hidemeta = false
 
-author = ['ILUNP']
+author = ['NACGNOH']
 tags = ['Thinkbox', 'Deadline', 'Deadline 10.4.2.3', 'Render Farm']
 categories = ['']
 

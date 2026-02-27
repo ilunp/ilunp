@@ -8,7 +8,7 @@ showToc = true
 mathjax = true
 hidemeta = false
 
-author = ['ILUNP']
+author = ['NACGNOH']
 tags = ['HUGO']
 categories = ['HUGO']
 
