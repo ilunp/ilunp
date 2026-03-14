@@ -1,0 +1,1321 @@
+<!doctype html><html lang=en dir=auto data-theme=dark><head><meta charset=utf-8><meta http-equiv=X-UA-Compatible content="IE=edge"><meta name=viewport content="width=device-width,initial-scale=1,shrink-to-fit=no"><meta name=robots content="index, follow"><title>Unity Prefab 缩略图导出 | ♪(^∇^*)</title><meta name=keywords content="untagged"><meta name=description content='1. 多轴向视图支持
+
+Front/Back: 前/后视图（±Z轴）
+Left/Right: 左/右视图（±X轴）
+Top/Bottom: 顶/底视图（±Y轴）
+Isometric: 等轴测视图（-X, -Y, -Z方向）
+IsometricOpposite: 相反方向的等轴测视图
+
+2. 相机控制
+
+Auto Center: 自动根据轴向定位相机
+Custom Rotation: 手动设置旋转角度
+
+3. 预览功能
+
+在场景中创建临时实例
+自动定位场景相机
+方便调整角度后导出
+
+4. 自动灯光
+
+如果没有光源，自动创建基本的三点光源
+确保物体被正确照亮
+
+使用说明：
+
+选择轴向：从下拉菜单中选择需要的视图方向
+调整设置：分辨率、背景色、边距等
+预览：点击"Preview in Scene"查看效果
+导出：选择单个或多个Prefab导出
+
+轴向后缀：
+导出的文件名会自动添加轴向信息，如：
+
+EmperorWalkingOverThere_Front_thumbnail.png
+EmperorWalkingOverThere_Top_thumbnail.png
+EmperorWalkingOverThere_Isometric_thumbnail.png
+
+脚本代码
+using UnityEditor;
+using UnityEngine;
+using System.IO;
+
+public class ThumbnailExportSettings : EditorWindow
+{
+    public int width = 256;
+    public int height = 256;
+    public bool transparentBackground = true;
+    public Color backgroundColor = Color.clear;
+    public int padding = 10;
+    
+    // 轴向选择
+    public enum ViewAxis
+    {
+        Front,
+        Back,
+        Left,
+        Right,
+        Top,
+        Bottom,
+        Isometric,
+        IsometricOpposite
+    }
+    
+    public ViewAxis selectedAxis = ViewAxis.Front;
+    public bool autoCenter = true;
+    public Vector3 customRotation = Vector3.zero;
+    
+    [MenuItem("Tools/Prefab Thumbnail Exporter")]
+    static void ShowWindow()
+    {
+        GetWindow<ThumbnailExportSettings>("Thumbnail Exporter");
+    }
+    
+    void OnGUI()
+    {
+        GUILayout.Label("Thumbnail Settings", EditorStyles.boldLabel);
+        
+        width = EditorGUILayout.IntField("Width", Mathf.Max(1, width));
+        height = EditorGUILayout.IntField("Height", Mathf.Max(1, height));
+        
+        transparentBackground = EditorGUILayout.Toggle("Transparent Background", transparentBackground);
+        
+        if (!transparentBackground)
+        {
+            backgroundColor = EditorGUILayout.ColorField("Background Color", backgroundColor);
+        }
+        
+        padding = EditorGUILayout.IntField("Padding", Mathf.Max(0, padding));
+        
+        GUILayout.Space(10);
+        GUILayout.Label("Camera Settings", EditorStyles.boldLabel);
+        
+        selectedAxis = (ViewAxis)EditorGUILayout.EnumPopup("View Axis", selectedAxis);
+        
+        if (selectedAxis == ViewAxis.Isometric || selectedAxis == ViewAxis.IsometricOpposite)
+        {
+            EditorGUILayout.HelpBox("Isometric view combines multiple axes", MessageType.Info);
+        }
+        
+        autoCenter = EditorGUILayout.Toggle("Auto Center Camera", autoCenter);
+        
+        if (!autoCenter)
+        {
+            customRotation = EditorGUILayout.Vector3Field("Custom Rotation", customRotation);
+        }
+        
+        GUILayout.Space(10);
+        
+        if (GUILayout.Button("Export Selected Prefab", GUILayout.Height(30)))
+        {
+            ExportSelectedPrefab();
+        }
+        
+        if (GUILayout.Button("Export All Selected Prefabs", GUILayout.Height(30)))
+        {
+            ExportAllSelectedPrefabs();
+        }
+        
+        if (GUILayout.Button("Preview in Scene", GUILayout.Height(25)))
+        {
+            PreviewSelectedPrefab();
+        }
+        
+        GUILayout.Space(10);
+        GUILayout.Label("Tips:", EditorStyles.boldLabel);
+        GUILayout.Label("• Front: +Z direction", EditorStyles.miniLabel);
+        GUILayout.Label("• Back: -Z direction", EditorStyles.miniLabel);
+        GUILayout.Label("• Left: -X direction", EditorStyles.miniLabel);
+        GUILayout.Label("• Right: +X direction", EditorStyles.miniLabel);
+        GUILayout.Label("• Top: +Y direction", EditorStyles.miniLabel);
+        GUILayout.Label("• Bottom: -Y direction", EditorStyles.miniLabel);
+    }
+    
+    void ExportSelectedPrefab()
+    {
+        GameObject selectedPrefab = Selection.activeObject as GameObject;
+        if (selectedPrefab == null)
+        {
+            Debug.LogError("Please select a Prefab in the Project window!");
+            return;
+        }
+        
+        string savePath = EditorUtility.SaveFilePanel(
+            "Save Thumbnail",
+            "",
+            $"{selectedPrefab.name}_{selectedAxis}_thumbnail",
+            "png");
+        
+        if (!string.IsNullOrEmpty(savePath))
+        {
+            Texture2D thumbnail = CapturePrefabThumbnail(selectedPrefab, width, height);
+            if (thumbnail != null)
+            {
+                byte[] bytes = thumbnail.EncodeToPNG();
+                File.WriteAllBytes(savePath, bytes);
+                DestroyImmediate(thumbnail);
+                Debug.Log($"Thumbnail saved to: {savePath}");
+            }
+        }
+    }
+    
+    void ExportAllSelectedPrefabs()
+    {
+        string outputFolder = EditorUtility.SaveFolderPanel("Select Output Folder", "", "");
+        if (string.IsNullOrEmpty(outputFolder)) return;
+        
+        int processed = 0;
+        int total = Selection.objects.Length;
+        
+        for (int i = 0; i < total; i++)
+        {
+            var obj = Selection.objects[i];
+            
+            if (obj is GameObject)
+            {
+                EditorUtility.DisplayProgressBar("Exporting Thumbnails", 
+                    $"Processing: {obj.name} ({i + 1}/{total})", 
+                    (float)i / total);
+                
+                Texture2D thumbnail = CapturePrefabThumbnail(obj as GameObject, width, height);
+                
+                if (thumbnail != null)
+                {
+                    byte[] bytes = thumbnail.EncodeToPNG();
+                    string fileName = GetValidFileName($"{obj.name}_{selectedAxis}") + ".png";
+                    File.WriteAllBytes(Path.Combine(outputFolder, fileName), bytes);
+                    
+                    DestroyImmediate(thumbnail);
+                    processed++;
+                }
+                
+                if (i % 5 == 0) System.Threading.Thread.Sleep(10);
+            }
+        }
+        
+        EditorUtility.ClearProgressBar();
+        Debug.Log($"Finished exporting {processed} out of {total} thumbnails");
+    }
+    
+    void PreviewSelectedPrefab()
+    {
+        GameObject selectedPrefab = Selection.activeObject as GameObject;
+        if (selectedPrefab == null)
+        {
+            Debug.LogError("Please select a Prefab in the Project window!");
+            return;
+        }
+        
+        // 在场景中创建临时实例用于预览
+        GameObject previewInstance = PrefabUtility.InstantiatePrefab(selectedPrefab) as GameObject;
+        if (previewInstance == null)
+        {
+            previewInstance = Object.Instantiate(selectedPrefab);
+        }
+        
+        // 定位场景相机
+        SceneView.lastActiveSceneView.Frame(previewInstance.GetBounds(), true);
+        
+        Debug.Log($"Preview instance created for {selectedPrefab.name}. Press Play to capture or delete the instance manually.");
+    }
+    
+    Texture2D CapturePrefabThumbnail(GameObject prefab, int width, int height)
+    {
+        if (prefab == null) return null;
+        
+        GameObject tempInstance = null;
+        RenderTexture rt = null;
+        Camera camera = null;
+        GameObject cameraGO = null;
+        
+        try
+        {
+            // 实例化Prefab
+            tempInstance = PrefabUtility.InstantiatePrefab(prefab) as GameObject;
+            if (tempInstance == null)
+            {
+                tempInstance = Object.Instantiate(prefab);
+            }
+            
+            // 计算边界
+            Bounds bounds = CalculateBounds(tempInstance);
+            
+            if (bounds.size == Vector3.zero)
+            {
+                Debug.LogWarning($"Prefab {prefab.name} has no renderable bounds");
+                return null;
+            }
+            
+            // 计算相机距离和位置
+            float maxSize = Mathf.Max(bounds.size.x, bounds.size.y, bounds.size.z);
+            float distance = maxSize * 0.5f + padding * 0.01f;
+            
+            // 设置渲染纹理
+            rt = RenderTexture.GetTemporary(width, height, 24, RenderTextureFormat.ARGB32);
+            
+            // 创建相机
+            cameraGO = new GameObject("ThumbnailCamera");
+            camera = cameraGO.AddComponent<Camera>();
+            camera.clearFlags = transparentBackground ? 
+                CameraClearFlags.SolidColor : CameraClearFlags.Color;
+            camera.backgroundColor = transparentBackground ? Color.clear : backgroundColor;
+            camera.orthographic = true;
+            camera.orthographicSize = distance;
+            camera.targetTexture = rt;
+            camera.nearClipPlane = 0.01f;
+            camera.farClipPlane = 1000f;
+            
+            // 设置相机位置和旋转
+            Vector3 cameraPosition = bounds.center;
+            Quaternion cameraRotation = GetCameraRotation(selectedAxis);
+            
+            if (autoCenter)
+            {
+                // 根据轴向计算相机位置
+                Vector3 direction = cameraRotation * Vector3.back;
+                cameraPosition += direction * (distance * 2f);
+            }
+            else
+            {
+                cameraGO.transform.rotation = Quaternion.Euler(customRotation);
+                cameraPosition += cameraGO.transform.forward * -(distance * 2f);
+            }
+            
+            cameraGO.transform.position = cameraPosition;
+            cameraGO.transform.LookAt(bounds.center);
+            
+            // 可选：添加简单的灯光
+            SetupBasicLighting(tempInstance);
+            
+            // 渲染
+            camera.Render();
+            
+            // 读取像素
+            Texture2D result = new Texture2D(width, height, TextureFormat.RGBA32, false);
+            RenderTexture.active = rt;
+            result.ReadPixels(new Rect(0, 0, width, height), 0, 0);
+            result.Apply();
+            RenderTexture.active = null;
+            
+            return result;
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"Error capturing thumbnail for {prefab.name}: {e.Message}");
+            return null;
+        }
+        finally
+        {
+            // 清理资源
+            if (tempInstance != null) DestroyImmediate(tempInstance);
+            if (cameraGO != null) DestroyImmediate(cameraGO);
+            if (rt != null) RenderTexture.ReleaseTemporary(rt);
+        }
+    }
+    
+    Quaternion GetCameraRotation(ViewAxis axis)
+    {
+        switch (axis)
+        {
+            case ViewAxis.Front:
+                return Quaternion.LookRotation(Vector3.forward, Vector3.up);
+            case ViewAxis.Back:
+                return Quaternion.LookRotation(Vector3.back, Vector3.up);
+            case ViewAxis.Left:
+                return Quaternion.LookRotation(Vector3.left, Vector3.up);
+            case ViewAxis.Right:
+                return Quaternion.LookRotation(Vector3.right, Vector3.up);
+            case ViewAxis.Top:
+                return Quaternion.LookRotation(Vector3.up, Vector3.forward);
+            case ViewAxis.Bottom:
+                return Quaternion.LookRotation(Vector3.down, Vector3.back);
+            case ViewAxis.Isometric:
+                return Quaternion.LookRotation(new Vector3(-1, -0.5f, -1).normalized, Vector3.up);
+            case ViewAxis.IsometricOpposite:
+                return Quaternion.LookRotation(new Vector3(1, -0.5f, 1).normalized, Vector3.up);
+            default:
+                return Quaternion.identity;
+        }
+    }
+    
+    void SetupBasicLighting(GameObject target)
+    {
+        // 检查是否已有光源
+        Light[] existingLights = Object.FindObjectsOfType<Light>();
+        if (existingLights.Length == 0)
+        {
+            // 创建基本的三点光源
+            CreateLight(new Vector3(-5, 5, 5), 1.0f, Color.white); // 主光
+            CreateLight(new Vector3(5, 3, 5), 0.5f, new Color(0.8f, 0.8f, 1.0f)); // 辅光
+            CreateLight(new Vector3(0, 10, 0), 0.3f, Color.white); // 顶光
+        }
+    }
+    
+    void CreateLight(Vector3 position, float intensity, Color color)
+    {
+        GameObject lightGO = new GameObject("ThumbnailLight");
+        Light light = lightGO.AddComponent<Light>();
+        light.type = LightType.Directional;
+        lightGO.transform.position = position;
+        lightGO.transform.LookAt(Vector3.zero);
+        light.intensity = intensity;
+        light.color = color;
+        light.shadows = LightShadows.None; // 为了性能，禁用阴影
+    }
+    
+    Bounds CalculateBounds(GameObject obj)
+    {
+        Bounds bounds = new Bounds(obj.transform.position, Vector3.zero);
+        bool hasBounds = false;
+        
+        // 获取所有Renderer组件
+        Renderer[] renderers = obj.GetComponentsInChildren<Renderer>();
+        if (renderers.Length > 0)
+        {
+            bounds = renderers[0].bounds;
+            hasBounds = true;
+            foreach (Renderer renderer in renderers)
+            {
+                bounds.Encapsulate(renderer.bounds);
+            }
+        }
+        
+        // 如果没有Renderer，使用Collider
+        if (!hasBounds)
+        {
+            Collider[] colliders = obj.GetComponentsInChildren<Collider>();
+            if (colliders.Length > 0)
+            {
+                bounds = colliders[0].bounds;
+                hasBounds = true;
+                foreach (Collider collider in colliders)
+                {
+                    bounds.Encapsulate(collider.bounds);
+                }
+            }
+        }
+        
+        // 如果仍然没有边界，使用MeshFilter
+        if (!hasBounds)
+        {
+            MeshFilter[] meshFilters = obj.GetComponentsInChildren<MeshFilter>();
+            if (meshFilters.Length > 0 && meshFilters[0].sharedMesh != null)
+            {
+                bounds = meshFilters[0].sharedMesh.bounds;
+                bounds.center = obj.transform.position;
+                hasBounds = true;
+                foreach (MeshFilter meshFilter in meshFilters)
+                {
+                    if (meshFilter.sharedMesh != null)
+                    {
+                        bounds.Encapsulate(meshFilter.sharedMesh.bounds);
+                    }
+                }
+            }
+        }
+        
+        return bounds;
+    }
+    
+    string GetValidFileName(string fileName)
+    {
+        char[] invalidChars = Path.GetInvalidFileNameChars();
+        foreach (char c in invalidChars)
+        {
+            fileName = fileName.Replace(c.ToString(), "");
+        }
+        return fileName;
+    }
+}
+
+// 扩展方法用于计算GameObject的边界
+public static class GameObjectExtensions
+{
+    public static Bounds GetBounds(this GameObject obj)
+    {
+        Bounds bounds = new Bounds(obj.transform.position, Vector3.zero);
+        Renderer[] renderers = obj.GetComponentsInChildren<Renderer>();
+        
+        if (renderers.Length > 0)
+        {
+            bounds = renderers[0].bounds;
+            foreach (Renderer renderer in renderers)
+            {
+                bounds.Encapsulate(renderer.bounds);
+            }
+        }
+        
+        return bounds;
+    }
+}
+'><meta name=author content="ILUNP"><link rel=canonical href=https://ilunp.com/posts/note/unity-prefab-thumbnail/><link crossorigin=anonymous href=/assets/css/stylesheet.6c716d9eb692ec01c2e37311ce1ff60cc7a2c0e21197eaf9474927cc58614124.css integrity="sha256-bHFtnraS7AHC43MRzh/2DMeiwOIRl+r5R0knzFhhQSQ=" rel="preload stylesheet" as=style><link rel=icon href=https://ilunp.com/favicon.ico><link rel=icon type=image/png sizes=16x16 href=https://ilunp.com/favicon-16x16.png><link rel=icon type=image/png sizes=32x32 href=https://ilunp.com/favicon-32x32.png><link rel=apple-touch-icon href=https://ilunp.com/apple-touch-icon.png><link rel=mask-icon href=https://ilunp.com/safari-pinned-tab.svg><meta name=theme-color content="#2e2e33"><meta name=msapplication-TileColor content="#2e2e33"><link rel=alternate hreflang=en href=https://ilunp.com/posts/note/unity-prefab-thumbnail/><noscript><style>#theme-toggle,.top-link{display:none}</style></noscript><script>localStorage.getItem("pref-theme")==="light"&&(document.querySelector("html").dataset.theme="light")</script><script>MathJax={tex:{inlineMath:[["$","$"]]},displayMath:[["$$","$$"],["[[","]]"]],svg:{fontCache:"global"}}</script><script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script><script type=text/javascript id=MathJax-script async src=https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js></script><meta property="og:url" content="https://ilunp.com/posts/note/unity-prefab-thumbnail/"><meta property="og:site_name" content="♪(^∇^*)"><meta property="og:title" content="Unity Prefab 缩略图导出"><meta property="og:description" content='1. 多轴向视图支持 Front/Back: 前/后视图（±Z轴） Left/Right: 左/右视图（±X轴） Top/Bottom: 顶/底视图（±Y轴） Isometric: 等轴测视图（-X, -Y, -Z方向） IsometricOpposite: 相反方向的等轴测视图 2. 相机控制 Auto Center: 自动根据轴向定位相机 Custom Rotation: 手动设置旋转角度 3. 预览功能 在场景中创建临时实例 自动定位场景相机 方便调整角度后导出 4. 自动灯光 如果没有光源，自动创建基本的三点光源 确保物体被正确照亮 使用说明： 选择轴向：从下拉菜单中选择需要的视图方向 调整设置：分辨率、背景色、边距等 预览：点击"Preview in Scene"查看效果 导出：选择单个或多个Prefab导出 轴向后缀： 导出的文件名会自动添加轴向信息，如：
+EmperorWalkingOverThere_Front_thumbnail.png EmperorWalkingOverThere_Top_thumbnail.png EmperorWalkingOverThere_Isometric_thumbnail.png 脚本代码 using UnityEditor; using UnityEngine; using System.IO; public class ThumbnailExportSettings : EditorWindow { public int width = 256; public int height = 256; public bool transparentBackground = true; public Color backgroundColor = Color.clear; public int padding = 10; // 轴向选择 public enum ViewAxis { Front, Back, Left, Right, Top, Bottom, Isometric, IsometricOpposite } public ViewAxis selectedAxis = ViewAxis.Front; public bool autoCenter = true; public Vector3 customRotation = Vector3.zero; [MenuItem("Tools/Prefab Thumbnail Exporter")] static void ShowWindow() { GetWindow<ThumbnailExportSettings>("Thumbnail Exporter"); } void OnGUI() { GUILayout.Label("Thumbnail Settings", EditorStyles.boldLabel); width = EditorGUILayout.IntField("Width", Mathf.Max(1, width)); height = EditorGUILayout.IntField("Height", Mathf.Max(1, height)); transparentBackground = EditorGUILayout.Toggle("Transparent Background", transparentBackground); if (!transparentBackground) { backgroundColor = EditorGUILayout.ColorField("Background Color", backgroundColor); } padding = EditorGUILayout.IntField("Padding", Mathf.Max(0, padding)); GUILayout.Space(10); GUILayout.Label("Camera Settings", EditorStyles.boldLabel); selectedAxis = (ViewAxis)EditorGUILayout.EnumPopup("View Axis", selectedAxis); if (selectedAxis == ViewAxis.Isometric || selectedAxis == ViewAxis.IsometricOpposite) { EditorGUILayout.HelpBox("Isometric view combines multiple axes", MessageType.Info); } autoCenter = EditorGUILayout.Toggle("Auto Center Camera", autoCenter); if (!autoCenter) { customRotation = EditorGUILayout.Vector3Field("Custom Rotation", customRotation); } GUILayout.Space(10); if (GUILayout.Button("Export Selected Prefab", GUILayout.Height(30))) { ExportSelectedPrefab(); } if (GUILayout.Button("Export All Selected Prefabs", GUILayout.Height(30))) { ExportAllSelectedPrefabs(); } if (GUILayout.Button("Preview in Scene", GUILayout.Height(25))) { PreviewSelectedPrefab(); } GUILayout.Space(10); GUILayout.Label("Tips:", EditorStyles.boldLabel); GUILayout.Label("• Front: +Z direction", EditorStyles.miniLabel); GUILayout.Label("• Back: -Z direction", EditorStyles.miniLabel); GUILayout.Label("• Left: -X direction", EditorStyles.miniLabel); GUILayout.Label("• Right: +X direction", EditorStyles.miniLabel); GUILayout.Label("• Top: +Y direction", EditorStyles.miniLabel); GUILayout.Label("• Bottom: -Y direction", EditorStyles.miniLabel); } void ExportSelectedPrefab() { GameObject selectedPrefab = Selection.activeObject as GameObject; if (selectedPrefab == null) { Debug.LogError("Please select a Prefab in the Project window!"); return; } string savePath = EditorUtility.SaveFilePanel( "Save Thumbnail", "", $"{selectedPrefab.name}_{selectedAxis}_thumbnail", "png"); if (!string.IsNullOrEmpty(savePath)) { Texture2D thumbnail = CapturePrefabThumbnail(selectedPrefab, width, height); if (thumbnail != null) { byte[] bytes = thumbnail.EncodeToPNG(); File.WriteAllBytes(savePath, bytes); DestroyImmediate(thumbnail); Debug.Log($"Thumbnail saved to: {savePath}"); } } } void ExportAllSelectedPrefabs() { string outputFolder = EditorUtility.SaveFolderPanel("Select Output Folder", "", ""); if (string.IsNullOrEmpty(outputFolder)) return; int processed = 0; int total = Selection.objects.Length; for (int i = 0; i < total; i++) { var obj = Selection.objects[i]; if (obj is GameObject) { EditorUtility.DisplayProgressBar("Exporting Thumbnails", $"Processing: {obj.name} ({i + 1}/{total})", (float)i / total); Texture2D thumbnail = CapturePrefabThumbnail(obj as GameObject, width, height); if (thumbnail != null) { byte[] bytes = thumbnail.EncodeToPNG(); string fileName = GetValidFileName($"{obj.name}_{selectedAxis}") + ".png"; File.WriteAllBytes(Path.Combine(outputFolder, fileName), bytes); DestroyImmediate(thumbnail); processed++; } if (i % 5 == 0) System.Threading.Thread.Sleep(10); } } EditorUtility.ClearProgressBar(); Debug.Log($"Finished exporting {processed} out of {total} thumbnails"); } void PreviewSelectedPrefab() { GameObject selectedPrefab = Selection.activeObject as GameObject; if (selectedPrefab == null) { Debug.LogError("Please select a Prefab in the Project window!"); return; } // 在场景中创建临时实例用于预览 GameObject previewInstance = PrefabUtility.InstantiatePrefab(selectedPrefab) as GameObject; if (previewInstance == null) { previewInstance = Object.Instantiate(selectedPrefab); } // 定位场景相机 SceneView.lastActiveSceneView.Frame(previewInstance.GetBounds(), true); Debug.Log($"Preview instance created for {selectedPrefab.name}. Press Play to capture or delete the instance manually."); } Texture2D CapturePrefabThumbnail(GameObject prefab, int width, int height) { if (prefab == null) return null; GameObject tempInstance = null; RenderTexture rt = null; Camera camera = null; GameObject cameraGO = null; try { // 实例化Prefab tempInstance = PrefabUtility.InstantiatePrefab(prefab) as GameObject; if (tempInstance == null) { tempInstance = Object.Instantiate(prefab); } // 计算边界 Bounds bounds = CalculateBounds(tempInstance); if (bounds.size == Vector3.zero) { Debug.LogWarning($"Prefab {prefab.name} has no renderable bounds"); return null; } // 计算相机距离和位置 float maxSize = Mathf.Max(bounds.size.x, bounds.size.y, bounds.size.z); float distance = maxSize * 0.5f + padding * 0.01f; // 设置渲染纹理 rt = RenderTexture.GetTemporary(width, height, 24, RenderTextureFormat.ARGB32); // 创建相机 cameraGO = new GameObject("ThumbnailCamera"); camera = cameraGO.AddComponent<Camera>(); camera.clearFlags = transparentBackground ? CameraClearFlags.SolidColor : CameraClearFlags.Color; camera.backgroundColor = transparentBackground ? Color.clear : backgroundColor; camera.orthographic = true; camera.orthographicSize = distance; camera.targetTexture = rt; camera.nearClipPlane = 0.01f; camera.farClipPlane = 1000f; // 设置相机位置和旋转 Vector3 cameraPosition = bounds.center; Quaternion cameraRotation = GetCameraRotation(selectedAxis); if (autoCenter) { // 根据轴向计算相机位置 Vector3 direction = cameraRotation * Vector3.back; cameraPosition += direction * (distance * 2f); } else { cameraGO.transform.rotation = Quaternion.Euler(customRotation); cameraPosition += cameraGO.transform.forward * -(distance * 2f); } cameraGO.transform.position = cameraPosition; cameraGO.transform.LookAt(bounds.center); // 可选：添加简单的灯光 SetupBasicLighting(tempInstance); // 渲染 camera.Render(); // 读取像素 Texture2D result = new Texture2D(width, height, TextureFormat.RGBA32, false); RenderTexture.active = rt; result.ReadPixels(new Rect(0, 0, width, height), 0, 0); result.Apply(); RenderTexture.active = null; return result; } catch (System.Exception e) { Debug.LogError($"Error capturing thumbnail for {prefab.name}: {e.Message}"); return null; } finally { // 清理资源 if (tempInstance != null) DestroyImmediate(tempInstance); if (cameraGO != null) DestroyImmediate(cameraGO); if (rt != null) RenderTexture.ReleaseTemporary(rt); } } Quaternion GetCameraRotation(ViewAxis axis) { switch (axis) { case ViewAxis.Front: return Quaternion.LookRotation(Vector3.forward, Vector3.up); case ViewAxis.Back: return Quaternion.LookRotation(Vector3.back, Vector3.up); case ViewAxis.Left: return Quaternion.LookRotation(Vector3.left, Vector3.up); case ViewAxis.Right: return Quaternion.LookRotation(Vector3.right, Vector3.up); case ViewAxis.Top: return Quaternion.LookRotation(Vector3.up, Vector3.forward); case ViewAxis.Bottom: return Quaternion.LookRotation(Vector3.down, Vector3.back); case ViewAxis.Isometric: return Quaternion.LookRotation(new Vector3(-1, -0.5f, -1).normalized, Vector3.up); case ViewAxis.IsometricOpposite: return Quaternion.LookRotation(new Vector3(1, -0.5f, 1).normalized, Vector3.up); default: return Quaternion.identity; } } void SetupBasicLighting(GameObject target) { // 检查是否已有光源 Light[] existingLights = Object.FindObjectsOfType<Light>(); if (existingLights.Length == 0) { // 创建基本的三点光源 CreateLight(new Vector3(-5, 5, 5), 1.0f, Color.white); // 主光 CreateLight(new Vector3(5, 3, 5), 0.5f, new Color(0.8f, 0.8f, 1.0f)); // 辅光 CreateLight(new Vector3(0, 10, 0), 0.3f, Color.white); // 顶光 } } void CreateLight(Vector3 position, float intensity, Color color) { GameObject lightGO = new GameObject("ThumbnailLight"); Light light = lightGO.AddComponent<Light>(); light.type = LightType.Directional; lightGO.transform.position = position; lightGO.transform.LookAt(Vector3.zero); light.intensity = intensity; light.color = color; light.shadows = LightShadows.None; // 为了性能，禁用阴影 } Bounds CalculateBounds(GameObject obj) { Bounds bounds = new Bounds(obj.transform.position, Vector3.zero); bool hasBounds = false; // 获取所有Renderer组件 Renderer[] renderers = obj.GetComponentsInChildren<Renderer>(); if (renderers.Length > 0) { bounds = renderers[0].bounds; hasBounds = true; foreach (Renderer renderer in renderers) { bounds.Encapsulate(renderer.bounds); } } // 如果没有Renderer，使用Collider if (!hasBounds) { Collider[] colliders = obj.GetComponentsInChildren<Collider>(); if (colliders.Length > 0) { bounds = colliders[0].bounds; hasBounds = true; foreach (Collider collider in colliders) { bounds.Encapsulate(collider.bounds); } } } // 如果仍然没有边界，使用MeshFilter if (!hasBounds) { MeshFilter[] meshFilters = obj.GetComponentsInChildren<MeshFilter>(); if (meshFilters.Length > 0 && meshFilters[0].sharedMesh != null) { bounds = meshFilters[0].sharedMesh.bounds; bounds.center = obj.transform.position; hasBounds = true; foreach (MeshFilter meshFilter in meshFilters) { if (meshFilter.sharedMesh != null) { bounds.Encapsulate(meshFilter.sharedMesh.bounds); } } } } return bounds; } string GetValidFileName(string fileName) { char[] invalidChars = Path.GetInvalidFileNameChars(); foreach (char c in invalidChars) { fileName = fileName.Replace(c.ToString(), ""); } return fileName; } } // 扩展方法用于计算GameObject的边界 public static class GameObjectExtensions { public static Bounds GetBounds(this GameObject obj) { Bounds bounds = new Bounds(obj.transform.position, Vector3.zero); Renderer[] renderers = obj.GetComponentsInChildren<Renderer>(); if (renderers.Length > 0) { bounds = renderers[0].bounds; foreach (Renderer renderer in renderers) { bounds.Encapsulate(renderer.bounds); } } return bounds; } } '><meta property="og:locale" content="zh"><meta property="og:type" content="article"><meta property="article:section" content="posts"><meta property="article:published_time" content="2026-03-14T15:06:33+08:00"><meta property="article:modified_time" content="2026-03-14T15:06:33+08:00"><meta property="article:tag" content="Untagged"><meta property="og:image" content="https://ilunp.com/posts/note/unity-prefab-thumbnail/thumbnail-exporter.jpg"><meta name=twitter:card content="summary_large_image"><meta name=twitter:image content="https://ilunp.com/posts/note/unity-prefab-thumbnail/thumbnail-exporter.jpg"><meta name=twitter:title content="Unity Prefab 缩略图导出"><meta name=twitter:description content='1. 多轴向视图支持
+
+Front/Back: 前/后视图（±Z轴）
+Left/Right: 左/右视图（±X轴）
+Top/Bottom: 顶/底视图（±Y轴）
+Isometric: 等轴测视图（-X, -Y, -Z方向）
+IsometricOpposite: 相反方向的等轴测视图
+
+2. 相机控制
+
+Auto Center: 自动根据轴向定位相机
+Custom Rotation: 手动设置旋转角度
+
+3. 预览功能
+
+在场景中创建临时实例
+自动定位场景相机
+方便调整角度后导出
+
+4. 自动灯光
+
+如果没有光源，自动创建基本的三点光源
+确保物体被正确照亮
+
+使用说明：
+
+选择轴向：从下拉菜单中选择需要的视图方向
+调整设置：分辨率、背景色、边距等
+预览：点击"Preview in Scene"查看效果
+导出：选择单个或多个Prefab导出
+
+轴向后缀：
+导出的文件名会自动添加轴向信息，如：
+
+EmperorWalkingOverThere_Front_thumbnail.png
+EmperorWalkingOverThere_Top_thumbnail.png
+EmperorWalkingOverThere_Isometric_thumbnail.png
+
+脚本代码
+using UnityEditor;
+using UnityEngine;
+using System.IO;
+
+public class ThumbnailExportSettings : EditorWindow
+{
+    public int width = 256;
+    public int height = 256;
+    public bool transparentBackground = true;
+    public Color backgroundColor = Color.clear;
+    public int padding = 10;
+    
+    // 轴向选择
+    public enum ViewAxis
+    {
+        Front,
+        Back,
+        Left,
+        Right,
+        Top,
+        Bottom,
+        Isometric,
+        IsometricOpposite
+    }
+    
+    public ViewAxis selectedAxis = ViewAxis.Front;
+    public bool autoCenter = true;
+    public Vector3 customRotation = Vector3.zero;
+    
+    [MenuItem("Tools/Prefab Thumbnail Exporter")]
+    static void ShowWindow()
+    {
+        GetWindow<ThumbnailExportSettings>("Thumbnail Exporter");
+    }
+    
+    void OnGUI()
+    {
+        GUILayout.Label("Thumbnail Settings", EditorStyles.boldLabel);
+        
+        width = EditorGUILayout.IntField("Width", Mathf.Max(1, width));
+        height = EditorGUILayout.IntField("Height", Mathf.Max(1, height));
+        
+        transparentBackground = EditorGUILayout.Toggle("Transparent Background", transparentBackground);
+        
+        if (!transparentBackground)
+        {
+            backgroundColor = EditorGUILayout.ColorField("Background Color", backgroundColor);
+        }
+        
+        padding = EditorGUILayout.IntField("Padding", Mathf.Max(0, padding));
+        
+        GUILayout.Space(10);
+        GUILayout.Label("Camera Settings", EditorStyles.boldLabel);
+        
+        selectedAxis = (ViewAxis)EditorGUILayout.EnumPopup("View Axis", selectedAxis);
+        
+        if (selectedAxis == ViewAxis.Isometric || selectedAxis == ViewAxis.IsometricOpposite)
+        {
+            EditorGUILayout.HelpBox("Isometric view combines multiple axes", MessageType.Info);
+        }
+        
+        autoCenter = EditorGUILayout.Toggle("Auto Center Camera", autoCenter);
+        
+        if (!autoCenter)
+        {
+            customRotation = EditorGUILayout.Vector3Field("Custom Rotation", customRotation);
+        }
+        
+        GUILayout.Space(10);
+        
+        if (GUILayout.Button("Export Selected Prefab", GUILayout.Height(30)))
+        {
+            ExportSelectedPrefab();
+        }
+        
+        if (GUILayout.Button("Export All Selected Prefabs", GUILayout.Height(30)))
+        {
+            ExportAllSelectedPrefabs();
+        }
+        
+        if (GUILayout.Button("Preview in Scene", GUILayout.Height(25)))
+        {
+            PreviewSelectedPrefab();
+        }
+        
+        GUILayout.Space(10);
+        GUILayout.Label("Tips:", EditorStyles.boldLabel);
+        GUILayout.Label("• Front: +Z direction", EditorStyles.miniLabel);
+        GUILayout.Label("• Back: -Z direction", EditorStyles.miniLabel);
+        GUILayout.Label("• Left: -X direction", EditorStyles.miniLabel);
+        GUILayout.Label("• Right: +X direction", EditorStyles.miniLabel);
+        GUILayout.Label("• Top: +Y direction", EditorStyles.miniLabel);
+        GUILayout.Label("• Bottom: -Y direction", EditorStyles.miniLabel);
+    }
+    
+    void ExportSelectedPrefab()
+    {
+        GameObject selectedPrefab = Selection.activeObject as GameObject;
+        if (selectedPrefab == null)
+        {
+            Debug.LogError("Please select a Prefab in the Project window!");
+            return;
+        }
+        
+        string savePath = EditorUtility.SaveFilePanel(
+            "Save Thumbnail",
+            "",
+            $"{selectedPrefab.name}_{selectedAxis}_thumbnail",
+            "png");
+        
+        if (!string.IsNullOrEmpty(savePath))
+        {
+            Texture2D thumbnail = CapturePrefabThumbnail(selectedPrefab, width, height);
+            if (thumbnail != null)
+            {
+                byte[] bytes = thumbnail.EncodeToPNG();
+                File.WriteAllBytes(savePath, bytes);
+                DestroyImmediate(thumbnail);
+                Debug.Log($"Thumbnail saved to: {savePath}");
+            }
+        }
+    }
+    
+    void ExportAllSelectedPrefabs()
+    {
+        string outputFolder = EditorUtility.SaveFolderPanel("Select Output Folder", "", "");
+        if (string.IsNullOrEmpty(outputFolder)) return;
+        
+        int processed = 0;
+        int total = Selection.objects.Length;
+        
+        for (int i = 0; i < total; i++)
+        {
+            var obj = Selection.objects[i];
+            
+            if (obj is GameObject)
+            {
+                EditorUtility.DisplayProgressBar("Exporting Thumbnails", 
+                    $"Processing: {obj.name} ({i + 1}/{total})", 
+                    (float)i / total);
+                
+                Texture2D thumbnail = CapturePrefabThumbnail(obj as GameObject, width, height);
+                
+                if (thumbnail != null)
+                {
+                    byte[] bytes = thumbnail.EncodeToPNG();
+                    string fileName = GetValidFileName($"{obj.name}_{selectedAxis}") + ".png";
+                    File.WriteAllBytes(Path.Combine(outputFolder, fileName), bytes);
+                    
+                    DestroyImmediate(thumbnail);
+                    processed++;
+                }
+                
+                if (i % 5 == 0) System.Threading.Thread.Sleep(10);
+            }
+        }
+        
+        EditorUtility.ClearProgressBar();
+        Debug.Log($"Finished exporting {processed} out of {total} thumbnails");
+    }
+    
+    void PreviewSelectedPrefab()
+    {
+        GameObject selectedPrefab = Selection.activeObject as GameObject;
+        if (selectedPrefab == null)
+        {
+            Debug.LogError("Please select a Prefab in the Project window!");
+            return;
+        }
+        
+        // 在场景中创建临时实例用于预览
+        GameObject previewInstance = PrefabUtility.InstantiatePrefab(selectedPrefab) as GameObject;
+        if (previewInstance == null)
+        {
+            previewInstance = Object.Instantiate(selectedPrefab);
+        }
+        
+        // 定位场景相机
+        SceneView.lastActiveSceneView.Frame(previewInstance.GetBounds(), true);
+        
+        Debug.Log($"Preview instance created for {selectedPrefab.name}. Press Play to capture or delete the instance manually.");
+    }
+    
+    Texture2D CapturePrefabThumbnail(GameObject prefab, int width, int height)
+    {
+        if (prefab == null) return null;
+        
+        GameObject tempInstance = null;
+        RenderTexture rt = null;
+        Camera camera = null;
+        GameObject cameraGO = null;
+        
+        try
+        {
+            // 实例化Prefab
+            tempInstance = PrefabUtility.InstantiatePrefab(prefab) as GameObject;
+            if (tempInstance == null)
+            {
+                tempInstance = Object.Instantiate(prefab);
+            }
+            
+            // 计算边界
+            Bounds bounds = CalculateBounds(tempInstance);
+            
+            if (bounds.size == Vector3.zero)
+            {
+                Debug.LogWarning($"Prefab {prefab.name} has no renderable bounds");
+                return null;
+            }
+            
+            // 计算相机距离和位置
+            float maxSize = Mathf.Max(bounds.size.x, bounds.size.y, bounds.size.z);
+            float distance = maxSize * 0.5f + padding * 0.01f;
+            
+            // 设置渲染纹理
+            rt = RenderTexture.GetTemporary(width, height, 24, RenderTextureFormat.ARGB32);
+            
+            // 创建相机
+            cameraGO = new GameObject("ThumbnailCamera");
+            camera = cameraGO.AddComponent<Camera>();
+            camera.clearFlags = transparentBackground ? 
+                CameraClearFlags.SolidColor : CameraClearFlags.Color;
+            camera.backgroundColor = transparentBackground ? Color.clear : backgroundColor;
+            camera.orthographic = true;
+            camera.orthographicSize = distance;
+            camera.targetTexture = rt;
+            camera.nearClipPlane = 0.01f;
+            camera.farClipPlane = 1000f;
+            
+            // 设置相机位置和旋转
+            Vector3 cameraPosition = bounds.center;
+            Quaternion cameraRotation = GetCameraRotation(selectedAxis);
+            
+            if (autoCenter)
+            {
+                // 根据轴向计算相机位置
+                Vector3 direction = cameraRotation * Vector3.back;
+                cameraPosition += direction * (distance * 2f);
+            }
+            else
+            {
+                cameraGO.transform.rotation = Quaternion.Euler(customRotation);
+                cameraPosition += cameraGO.transform.forward * -(distance * 2f);
+            }
+            
+            cameraGO.transform.position = cameraPosition;
+            cameraGO.transform.LookAt(bounds.center);
+            
+            // 可选：添加简单的灯光
+            SetupBasicLighting(tempInstance);
+            
+            // 渲染
+            camera.Render();
+            
+            // 读取像素
+            Texture2D result = new Texture2D(width, height, TextureFormat.RGBA32, false);
+            RenderTexture.active = rt;
+            result.ReadPixels(new Rect(0, 0, width, height), 0, 0);
+            result.Apply();
+            RenderTexture.active = null;
+            
+            return result;
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"Error capturing thumbnail for {prefab.name}: {e.Message}");
+            return null;
+        }
+        finally
+        {
+            // 清理资源
+            if (tempInstance != null) DestroyImmediate(tempInstance);
+            if (cameraGO != null) DestroyImmediate(cameraGO);
+            if (rt != null) RenderTexture.ReleaseTemporary(rt);
+        }
+    }
+    
+    Quaternion GetCameraRotation(ViewAxis axis)
+    {
+        switch (axis)
+        {
+            case ViewAxis.Front:
+                return Quaternion.LookRotation(Vector3.forward, Vector3.up);
+            case ViewAxis.Back:
+                return Quaternion.LookRotation(Vector3.back, Vector3.up);
+            case ViewAxis.Left:
+                return Quaternion.LookRotation(Vector3.left, Vector3.up);
+            case ViewAxis.Right:
+                return Quaternion.LookRotation(Vector3.right, Vector3.up);
+            case ViewAxis.Top:
+                return Quaternion.LookRotation(Vector3.up, Vector3.forward);
+            case ViewAxis.Bottom:
+                return Quaternion.LookRotation(Vector3.down, Vector3.back);
+            case ViewAxis.Isometric:
+                return Quaternion.LookRotation(new Vector3(-1, -0.5f, -1).normalized, Vector3.up);
+            case ViewAxis.IsometricOpposite:
+                return Quaternion.LookRotation(new Vector3(1, -0.5f, 1).normalized, Vector3.up);
+            default:
+                return Quaternion.identity;
+        }
+    }
+    
+    void SetupBasicLighting(GameObject target)
+    {
+        // 检查是否已有光源
+        Light[] existingLights = Object.FindObjectsOfType<Light>();
+        if (existingLights.Length == 0)
+        {
+            // 创建基本的三点光源
+            CreateLight(new Vector3(-5, 5, 5), 1.0f, Color.white); // 主光
+            CreateLight(new Vector3(5, 3, 5), 0.5f, new Color(0.8f, 0.8f, 1.0f)); // 辅光
+            CreateLight(new Vector3(0, 10, 0), 0.3f, Color.white); // 顶光
+        }
+    }
+    
+    void CreateLight(Vector3 position, float intensity, Color color)
+    {
+        GameObject lightGO = new GameObject("ThumbnailLight");
+        Light light = lightGO.AddComponent<Light>();
+        light.type = LightType.Directional;
+        lightGO.transform.position = position;
+        lightGO.transform.LookAt(Vector3.zero);
+        light.intensity = intensity;
+        light.color = color;
+        light.shadows = LightShadows.None; // 为了性能，禁用阴影
+    }
+    
+    Bounds CalculateBounds(GameObject obj)
+    {
+        Bounds bounds = new Bounds(obj.transform.position, Vector3.zero);
+        bool hasBounds = false;
+        
+        // 获取所有Renderer组件
+        Renderer[] renderers = obj.GetComponentsInChildren<Renderer>();
+        if (renderers.Length > 0)
+        {
+            bounds = renderers[0].bounds;
+            hasBounds = true;
+            foreach (Renderer renderer in renderers)
+            {
+                bounds.Encapsulate(renderer.bounds);
+            }
+        }
+        
+        // 如果没有Renderer，使用Collider
+        if (!hasBounds)
+        {
+            Collider[] colliders = obj.GetComponentsInChildren<Collider>();
+            if (colliders.Length > 0)
+            {
+                bounds = colliders[0].bounds;
+                hasBounds = true;
+                foreach (Collider collider in colliders)
+                {
+                    bounds.Encapsulate(collider.bounds);
+                }
+            }
+        }
+        
+        // 如果仍然没有边界，使用MeshFilter
+        if (!hasBounds)
+        {
+            MeshFilter[] meshFilters = obj.GetComponentsInChildren<MeshFilter>();
+            if (meshFilters.Length > 0 && meshFilters[0].sharedMesh != null)
+            {
+                bounds = meshFilters[0].sharedMesh.bounds;
+                bounds.center = obj.transform.position;
+                hasBounds = true;
+                foreach (MeshFilter meshFilter in meshFilters)
+                {
+                    if (meshFilter.sharedMesh != null)
+                    {
+                        bounds.Encapsulate(meshFilter.sharedMesh.bounds);
+                    }
+                }
+            }
+        }
+        
+        return bounds;
+    }
+    
+    string GetValidFileName(string fileName)
+    {
+        char[] invalidChars = Path.GetInvalidFileNameChars();
+        foreach (char c in invalidChars)
+        {
+            fileName = fileName.Replace(c.ToString(), "");
+        }
+        return fileName;
+    }
+}
+
+// 扩展方法用于计算GameObject的边界
+public static class GameObjectExtensions
+{
+    public static Bounds GetBounds(this GameObject obj)
+    {
+        Bounds bounds = new Bounds(obj.transform.position, Vector3.zero);
+        Renderer[] renderers = obj.GetComponentsInChildren<Renderer>();
+        
+        if (renderers.Length > 0)
+        {
+            bounds = renderers[0].bounds;
+            foreach (Renderer renderer in renderers)
+            {
+                bounds.Encapsulate(renderer.bounds);
+            }
+        }
+        
+        return bounds;
+    }
+}
+'><script type=application/ld+json>{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"文章","item":"https://ilunp.com/posts/"},{"@type":"ListItem","position":2,"name":"📝 小笔记","item":"https://ilunp.com/posts/note/"},{"@type":"ListItem","position":3,"name":"Unity Prefab 缩略图导出","item":"https://ilunp.com/posts/note/unity-prefab-thumbnail/"}]}</script><script type=application/ld+json>{"@context":"https://schema.org","@type":"BlogPosting","headline":"Unity Prefab 缩略图导出","name":"Unity Prefab 缩略图导出","description":"1. 多轴向视图支持 Front/Back: 前/后视图（±Z轴） Left/Right: 左/右视图（±X轴） Top/Bottom: 顶/底视图（±Y轴） Isometric: 等轴测视图（-X, -Y, -Z方向） IsometricOpposite: 相反方向的等轴测视图 2. 相机控制 Auto Center: 自动根据轴向定位相机 Custom Rotation: 手动设置旋转角度 3. 预览功能 在场景中创建临时实例 自动定位场景相机 方便调整角度后导出 4. 自动灯光 如果没有光源，自动创建基本的三点光源 确保物体被正确照亮 使用说明： 选择轴向：从下拉菜单中选择需要的视图方向 调整设置：分辨率、背景色、边距等 预览：点击\u0026quot;Preview in Scene\u0026quot;查看效果 导出：选择单个或多个Prefab导出 轴向后缀： 导出的文件名会自动添加轴向信息，如：\nEmperorWalkingOverThere_Front_thumbnail.png EmperorWalkingOverThere_Top_thumbnail.png EmperorWalkingOverThere_Isometric_thumbnail.png 脚本代码 using UnityEditor; using UnityEngine; using System.IO; public class ThumbnailExportSettings : EditorWindow { public int width = 256; public int height = 256; public bool transparentBackground = true; public Color backgroundColor = Color.clear; public int padding = 10; // 轴向选择 public enum ViewAxis { Front, Back, Left, Right, Top, Bottom, Isometric, IsometricOpposite } public ViewAxis selectedAxis = ViewAxis.Front; public bool autoCenter = true; public Vector3 customRotation = Vector3.zero; [MenuItem(\u0026#34;Tools/Prefab Thumbnail Exporter\u0026#34;)] static void ShowWindow() { GetWindow\u0026lt;ThumbnailExportSettings\u0026gt;(\u0026#34;Thumbnail Exporter\u0026#34;); } void OnGUI() { GUILayout.Label(\u0026#34;Thumbnail Settings\u0026#34;, EditorStyles.boldLabel); width = EditorGUILayout.IntField(\u0026#34;Width\u0026#34;, Mathf.Max(1, width)); height = EditorGUILayout.IntField(\u0026#34;Height\u0026#34;, Mathf.Max(1, height)); transparentBackground = EditorGUILayout.Toggle(\u0026#34;Transparent Background\u0026#34;, transparentBackground); if (!transparentBackground) { backgroundColor = EditorGUILayout.ColorField(\u0026#34;Background Color\u0026#34;, backgroundColor); } padding = EditorGUILayout.IntField(\u0026#34;Padding\u0026#34;, Mathf.Max(0, padding)); GUILayout.Space(10); GUILayout.Label(\u0026#34;Camera Settings\u0026#34;, EditorStyles.boldLabel); selectedAxis = (ViewAxis)EditorGUILayout.EnumPopup(\u0026#34;View Axis\u0026#34;, selectedAxis); if (selectedAxis == ViewAxis.Isometric || selectedAxis == ViewAxis.IsometricOpposite) { EditorGUILayout.HelpBox(\u0026#34;Isometric view combines multiple axes\u0026#34;, MessageType.Info); } autoCenter = EditorGUILayout.Toggle(\u0026#34;Auto Center Camera\u0026#34;, autoCenter); if (!autoCenter) { customRotation = EditorGUILayout.Vector3Field(\u0026#34;Custom Rotation\u0026#34;, customRotation); } GUILayout.Space(10); if (GUILayout.Button(\u0026#34;Export Selected Prefab\u0026#34;, GUILayout.Height(30))) { ExportSelectedPrefab(); } if (GUILayout.Button(\u0026#34;Export All Selected Prefabs\u0026#34;, GUILayout.Height(30))) { ExportAllSelectedPrefabs(); } if (GUILayout.Button(\u0026#34;Preview in Scene\u0026#34;, GUILayout.Height(25))) { PreviewSelectedPrefab(); } GUILayout.Space(10); GUILayout.Label(\u0026#34;Tips:\u0026#34;, EditorStyles.boldLabel); GUILayout.Label(\u0026#34;• Front: +Z direction\u0026#34;, EditorStyles.miniLabel); GUILayout.Label(\u0026#34;• Back: -Z direction\u0026#34;, EditorStyles.miniLabel); GUILayout.Label(\u0026#34;• Left: -X direction\u0026#34;, EditorStyles.miniLabel); GUILayout.Label(\u0026#34;• Right: +X direction\u0026#34;, EditorStyles.miniLabel); GUILayout.Label(\u0026#34;• Top: +Y direction\u0026#34;, EditorStyles.miniLabel); GUILayout.Label(\u0026#34;• Bottom: -Y direction\u0026#34;, EditorStyles.miniLabel); } void ExportSelectedPrefab() { GameObject selectedPrefab = Selection.activeObject as GameObject; if (selectedPrefab == null) { Debug.LogError(\u0026#34;Please select a Prefab in the Project window!\u0026#34;); return; } string savePath = EditorUtility.SaveFilePanel( \u0026#34;Save Thumbnail\u0026#34;, \u0026#34;\u0026#34;, $\u0026#34;{selectedPrefab.name}_{selectedAxis}_thumbnail\u0026#34;, \u0026#34;png\u0026#34;); if (!string.IsNullOrEmpty(savePath)) { Texture2D thumbnail = CapturePrefabThumbnail(selectedPrefab, width, height); if (thumbnail != null) { byte[] bytes = thumbnail.EncodeToPNG(); File.WriteAllBytes(savePath, bytes); DestroyImmediate(thumbnail); Debug.Log($\u0026#34;Thumbnail saved to: {savePath}\u0026#34;); } } } void ExportAllSelectedPrefabs() { string outputFolder = EditorUtility.SaveFolderPanel(\u0026#34;Select Output Folder\u0026#34;, \u0026#34;\u0026#34;, \u0026#34;\u0026#34;); if (string.IsNullOrEmpty(outputFolder)) return; int processed = 0; int total = Selection.objects.Length; for (int i = 0; i \u0026lt; total; i++) { var obj = Selection.objects[i]; if (obj is GameObject) { EditorUtility.DisplayProgressBar(\u0026#34;Exporting Thumbnails\u0026#34;, $\u0026#34;Processing: {obj.name} ({i + 1}/{total})\u0026#34;, (float)i / total); Texture2D thumbnail = CapturePrefabThumbnail(obj as GameObject, width, height); if (thumbnail != null) { byte[] bytes = thumbnail.EncodeToPNG(); string fileName = GetValidFileName($\u0026#34;{obj.name}_{selectedAxis}\u0026#34;) + \u0026#34;.png\u0026#34;; File.WriteAllBytes(Path.Combine(outputFolder, fileName), bytes); DestroyImmediate(thumbnail); processed++; } if (i % 5 == 0) System.Threading.Thread.Sleep(10); } } EditorUtility.ClearProgressBar(); Debug.Log($\u0026#34;Finished exporting {processed} out of {total} thumbnails\u0026#34;); } void PreviewSelectedPrefab() { GameObject selectedPrefab = Selection.activeObject as GameObject; if (selectedPrefab == null) { Debug.LogError(\u0026#34;Please select a Prefab in the Project window!\u0026#34;); return; } // 在场景中创建临时实例用于预览 GameObject previewInstance = PrefabUtility.InstantiatePrefab(selectedPrefab) as GameObject; if (previewInstance == null) { previewInstance = Object.Instantiate(selectedPrefab); } // 定位场景相机 SceneView.lastActiveSceneView.Frame(previewInstance.GetBounds(), true); Debug.Log($\u0026#34;Preview instance created for {selectedPrefab.name}. Press Play to capture or delete the instance manually.\u0026#34;); } Texture2D CapturePrefabThumbnail(GameObject prefab, int width, int height) { if (prefab == null) return null; GameObject tempInstance = null; RenderTexture rt = null; Camera camera = null; GameObject cameraGO = null; try { // 实例化Prefab tempInstance = PrefabUtility.InstantiatePrefab(prefab) as GameObject; if (tempInstance == null) { tempInstance = Object.Instantiate(prefab); } // 计算边界 Bounds bounds = CalculateBounds(tempInstance); if (bounds.size == Vector3.zero) { Debug.LogWarning($\u0026#34;Prefab {prefab.name} has no renderable bounds\u0026#34;); return null; } // 计算相机距离和位置 float maxSize = Mathf.Max(bounds.size.x, bounds.size.y, bounds.size.z); float distance = maxSize * 0.5f + padding * 0.01f; // 设置渲染纹理 rt = RenderTexture.GetTemporary(width, height, 24, RenderTextureFormat.ARGB32); // 创建相机 cameraGO = new GameObject(\u0026#34;ThumbnailCamera\u0026#34;); camera = cameraGO.AddComponent\u0026lt;Camera\u0026gt;(); camera.clearFlags = transparentBackground ? CameraClearFlags.SolidColor : CameraClearFlags.Color; camera.backgroundColor = transparentBackground ? Color.clear : backgroundColor; camera.orthographic = true; camera.orthographicSize = distance; camera.targetTexture = rt; camera.nearClipPlane = 0.01f; camera.farClipPlane = 1000f; // 设置相机位置和旋转 Vector3 cameraPosition = bounds.center; Quaternion cameraRotation = GetCameraRotation(selectedAxis); if (autoCenter) { // 根据轴向计算相机位置 Vector3 direction = cameraRotation * Vector3.back; cameraPosition += direction * (distance * 2f); } else { cameraGO.transform.rotation = Quaternion.Euler(customRotation); cameraPosition += cameraGO.transform.forward * -(distance * 2f); } cameraGO.transform.position = cameraPosition; cameraGO.transform.LookAt(bounds.center); // 可选：添加简单的灯光 SetupBasicLighting(tempInstance); // 渲染 camera.Render(); // 读取像素 Texture2D result = new Texture2D(width, height, TextureFormat.RGBA32, false); RenderTexture.active = rt; result.ReadPixels(new Rect(0, 0, width, height), 0, 0); result.Apply(); RenderTexture.active = null; return result; } catch (System.Exception e) { Debug.LogError($\u0026#34;Error capturing thumbnail for {prefab.name}: {e.Message}\u0026#34;); return null; } finally { // 清理资源 if (tempInstance != null) DestroyImmediate(tempInstance); if (cameraGO != null) DestroyImmediate(cameraGO); if (rt != null) RenderTexture.ReleaseTemporary(rt); } } Quaternion GetCameraRotation(ViewAxis axis) { switch (axis) { case ViewAxis.Front: return Quaternion.LookRotation(Vector3.forward, Vector3.up); case ViewAxis.Back: return Quaternion.LookRotation(Vector3.back, Vector3.up); case ViewAxis.Left: return Quaternion.LookRotation(Vector3.left, Vector3.up); case ViewAxis.Right: return Quaternion.LookRotation(Vector3.right, Vector3.up); case ViewAxis.Top: return Quaternion.LookRotation(Vector3.up, Vector3.forward); case ViewAxis.Bottom: return Quaternion.LookRotation(Vector3.down, Vector3.back); case ViewAxis.Isometric: return Quaternion.LookRotation(new Vector3(-1, -0.5f, -1).normalized, Vector3.up); case ViewAxis.IsometricOpposite: return Quaternion.LookRotation(new Vector3(1, -0.5f, 1).normalized, Vector3.up); default: return Quaternion.identity; } } void SetupBasicLighting(GameObject target) { // 检查是否已有光源 Light[] existingLights = Object.FindObjectsOfType\u0026lt;Light\u0026gt;(); if (existingLights.Length == 0) { // 创建基本的三点光源 CreateLight(new Vector3(-5, 5, 5), 1.0f, Color.white); // 主光 CreateLight(new Vector3(5, 3, 5), 0.5f, new Color(0.8f, 0.8f, 1.0f)); // 辅光 CreateLight(new Vector3(0, 10, 0), 0.3f, Color.white); // 顶光 } } void CreateLight(Vector3 position, float intensity, Color color) { GameObject lightGO = new GameObject(\u0026#34;ThumbnailLight\u0026#34;); Light light = lightGO.AddComponent\u0026lt;Light\u0026gt;(); light.type = LightType.Directional; lightGO.transform.position = position; lightGO.transform.LookAt(Vector3.zero); light.intensity = intensity; light.color = color; light.shadows = LightShadows.None; // 为了性能，禁用阴影 } Bounds CalculateBounds(GameObject obj) { Bounds bounds = new Bounds(obj.transform.position, Vector3.zero); bool hasBounds = false; // 获取所有Renderer组件 Renderer[] renderers = obj.GetComponentsInChildren\u0026lt;Renderer\u0026gt;(); if (renderers.Length \u0026gt; 0) { bounds = renderers[0].bounds; hasBounds = true; foreach (Renderer renderer in renderers) { bounds.Encapsulate(renderer.bounds); } } // 如果没有Renderer，使用Collider if (!hasBounds) { Collider[] colliders = obj.GetComponentsInChildren\u0026lt;Collider\u0026gt;(); if (colliders.Length \u0026gt; 0) { bounds = colliders[0].bounds; hasBounds = true; foreach (Collider collider in colliders) { bounds.Encapsulate(collider.bounds); } } } // 如果仍然没有边界，使用MeshFilter if (!hasBounds) { MeshFilter[] meshFilters = obj.GetComponentsInChildren\u0026lt;MeshFilter\u0026gt;(); if (meshFilters.Length \u0026gt; 0 \u0026amp;\u0026amp; meshFilters[0].sharedMesh != null) { bounds = meshFilters[0].sharedMesh.bounds; bounds.center = obj.transform.position; hasBounds = true; foreach (MeshFilter meshFilter in meshFilters) { if (meshFilter.sharedMesh != null) { bounds.Encapsulate(meshFilter.sharedMesh.bounds); } } } } return bounds; } string GetValidFileName(string fileName) { char[] invalidChars = Path.GetInvalidFileNameChars(); foreach (char c in invalidChars) { fileName = fileName.Replace(c.ToString(), \u0026#34;\u0026#34;); } return fileName; } } // 扩展方法用于计算GameObject的边界 public static class GameObjectExtensions { public static Bounds GetBounds(this GameObject obj) { Bounds bounds = new Bounds(obj.transform.position, Vector3.zero); Renderer[] renderers = obj.GetComponentsInChildren\u0026lt;Renderer\u0026gt;(); if (renderers.Length \u0026gt; 0) { bounds = renderers[0].bounds; foreach (Renderer renderer in renderers) { bounds.Encapsulate(renderer.bounds); } } return bounds; } } ","keywords":["untagged"],"articleBody":"1. 多轴向视图支持 Front/Back: 前/后视图（±Z轴） Left/Right: 左/右视图（±X轴） Top/Bottom: 顶/底视图（±Y轴） Isometric: 等轴测视图（-X, -Y, -Z方向） IsometricOpposite: 相反方向的等轴测视图 2. 相机控制 Auto Center: 自动根据轴向定位相机 Custom Rotation: 手动设置旋转角度 3. 预览功能 在场景中创建临时实例 自动定位场景相机 方便调整角度后导出 4. 自动灯光 如果没有光源，自动创建基本的三点光源 确保物体被正确照亮 使用说明： 选择轴向：从下拉菜单中选择需要的视图方向 调整设置：分辨率、背景色、边距等 预览：点击\"Preview in Scene\"查看效果 导出：选择单个或多个Prefab导出 轴向后缀： 导出的文件名会自动添加轴向信息，如：\nEmperorWalkingOverThere_Front_thumbnail.png EmperorWalkingOverThere_Top_thumbnail.png EmperorWalkingOverThere_Isometric_thumbnail.png 脚本代码 using UnityEditor; using UnityEngine; using System.IO; public class ThumbnailExportSettings : EditorWindow { public int width = 256; public int height = 256; public bool transparentBackground = true; public Color backgroundColor = Color.clear; public int padding = 10; // 轴向选择 public enum ViewAxis { Front, Back, Left, Right, Top, Bottom, Isometric, IsometricOpposite } public ViewAxis selectedAxis = ViewAxis.Front; public bool autoCenter = true; public Vector3 customRotation = Vector3.zero; [MenuItem(\"Tools/Prefab Thumbnail Exporter\")] static void ShowWindow() { GetWindow(\"Thumbnail Exporter\"); } void OnGUI() { GUILayout.Label(\"Thumbnail Settings\", EditorStyles.boldLabel); width = EditorGUILayout.IntField(\"Width\", Mathf.Max(1, width)); height = EditorGUILayout.IntField(\"Height\", Mathf.Max(1, height)); transparentBackground = EditorGUILayout.Toggle(\"Transparent Background\", transparentBackground); if (!transparentBackground) { backgroundColor = EditorGUILayout.ColorField(\"Background Color\", backgroundColor); } padding = EditorGUILayout.IntField(\"Padding\", Mathf.Max(0, padding)); GUILayout.Space(10); GUILayout.Label(\"Camera Settings\", EditorStyles.boldLabel); selectedAxis = (ViewAxis)EditorGUILayout.EnumPopup(\"View Axis\", selectedAxis); if (selectedAxis == ViewAxis.Isometric || selectedAxis == ViewAxis.IsometricOpposite) { EditorGUILayout.HelpBox(\"Isometric view combines multiple axes\", MessageType.Info); } autoCenter = EditorGUILayout.Toggle(\"Auto Center Camera\", autoCenter); if (!autoCenter) { customRotation = EditorGUILayout.Vector3Field(\"Custom Rotation\", customRotation); } GUILayout.Space(10); if (GUILayout.Button(\"Export Selected Prefab\", GUILayout.Height(30))) { ExportSelectedPrefab(); } if (GUILayout.Button(\"Export All Selected Prefabs\", GUILayout.Height(30))) { ExportAllSelectedPrefabs(); } if (GUILayout.Button(\"Preview in Scene\", GUILayout.Height(25))) { PreviewSelectedPrefab(); } GUILayout.Space(10); GUILayout.Label(\"Tips:\", EditorStyles.boldLabel); GUILayout.Label(\"• Front: +Z direction\", EditorStyles.miniLabel); GUILayout.Label(\"• Back: -Z direction\", EditorStyles.miniLabel); GUILayout.Label(\"• Left: -X direction\", EditorStyles.miniLabel); GUILayout.Label(\"• Right: +X direction\", EditorStyles.miniLabel); GUILayout.Label(\"• Top: +Y direction\", EditorStyles.miniLabel); GUILayout.Label(\"• Bottom: -Y direction\", EditorStyles.miniLabel); } void ExportSelectedPrefab() { GameObject selectedPrefab = Selection.activeObject as GameObject; if (selectedPrefab == null) { Debug.LogError(\"Please select a Prefab in the Project window!\"); return; } string savePath = EditorUtility.SaveFilePanel( \"Save Thumbnail\", \"\", $\"{selectedPrefab.name}_{selectedAxis}_thumbnail\", \"png\"); if (!string.IsNullOrEmpty(savePath)) { Texture2D thumbnail = CapturePrefabThumbnail(selectedPrefab, width, height); if (thumbnail != null) { byte[] bytes = thumbnail.EncodeToPNG(); File.WriteAllBytes(savePath, bytes); DestroyImmediate(thumbnail); Debug.Log($\"Thumbnail saved to: {savePath}\"); } } } void ExportAllSelectedPrefabs() { string outputFolder = EditorUtility.SaveFolderPanel(\"Select Output Folder\", \"\", \"\"); if (string.IsNullOrEmpty(outputFolder)) return; int processed = 0; int total = Selection.objects.Length; for (int i = 0; i \u003c total; i++) { var obj = Selection.objects[i]; if (obj is GameObject) { EditorUtility.DisplayProgressBar(\"Exporting Thumbnails\", $\"Processing: {obj.name} ({i + 1}/{total})\", (float)i / total); Texture2D thumbnail = CapturePrefabThumbnail(obj as GameObject, width, height); if (thumbnail != null) { byte[] bytes = thumbnail.EncodeToPNG(); string fileName = GetValidFileName($\"{obj.name}_{selectedAxis}\") + \".png\"; File.WriteAllBytes(Path.Combine(outputFolder, fileName), bytes); DestroyImmediate(thumbnail); processed++; } if (i % 5 == 0) System.Threading.Thread.Sleep(10); } } EditorUtility.ClearProgressBar(); Debug.Log($\"Finished exporting {processed} out of {total} thumbnails\"); } void PreviewSelectedPrefab() { GameObject selectedPrefab = Selection.activeObject as GameObject; if (selectedPrefab == null) { Debug.LogError(\"Please select a Prefab in the Project window!\"); return; } // 在场景中创建临时实例用于预览 GameObject previewInstance = PrefabUtility.InstantiatePrefab(selectedPrefab) as GameObject; if (previewInstance == null) { previewInstance = Object.Instantiate(selectedPrefab); } // 定位场景相机 SceneView.lastActiveSceneView.Frame(previewInstance.GetBounds(), true); Debug.Log($\"Preview instance created for {selectedPrefab.name}. Press Play to capture or delete the instance manually.\"); } Texture2D CapturePrefabThumbnail(GameObject prefab, int width, int height) { if (prefab == null) return null; GameObject tempInstance = null; RenderTexture rt = null; Camera camera = null; GameObject cameraGO = null; try { // 实例化Prefab tempInstance = PrefabUtility.InstantiatePrefab(prefab) as GameObject; if (tempInstance == null) { tempInstance = Object.Instantiate(prefab); } // 计算边界 Bounds bounds = CalculateBounds(tempInstance); if (bounds.size == Vector3.zero) { Debug.LogWarning($\"Prefab {prefab.name} has no renderable bounds\"); return null; } // 计算相机距离和位置 float maxSize = Mathf.Max(bounds.size.x, bounds.size.y, bounds.size.z); float distance = maxSize * 0.5f + padding * 0.01f; // 设置渲染纹理 rt = RenderTexture.GetTemporary(width, height, 24, RenderTextureFormat.ARGB32); // 创建相机 cameraGO = new GameObject(\"ThumbnailCamera\"); camera = cameraGO.AddComponent(); camera.clearFlags = transparentBackground ? CameraClearFlags.SolidColor : CameraClearFlags.Color; camera.backgroundColor = transparentBackground ? Color.clear : backgroundColor; camera.orthographic = true; camera.orthographicSize = distance; camera.targetTexture = rt; camera.nearClipPlane = 0.01f; camera.farClipPlane = 1000f; // 设置相机位置和旋转 Vector3 cameraPosition = bounds.center; Quaternion cameraRotation = GetCameraRotation(selectedAxis); if (autoCenter) { // 根据轴向计算相机位置 Vector3 direction = cameraRotation * Vector3.back; cameraPosition += direction * (distance * 2f); } else { cameraGO.transform.rotation = Quaternion.Euler(customRotation); cameraPosition += cameraGO.transform.forward * -(distance * 2f); } cameraGO.transform.position = cameraPosition; cameraGO.transform.LookAt(bounds.center); // 可选：添加简单的灯光 SetupBasicLighting(tempInstance); // 渲染 camera.Render(); // 读取像素 Texture2D result = new Texture2D(width, height, TextureFormat.RGBA32, false); RenderTexture.active = rt; result.ReadPixels(new Rect(0, 0, width, height), 0, 0); result.Apply(); RenderTexture.active = null; return result; } catch (System.Exception e) { Debug.LogError($\"Error capturing thumbnail for {prefab.name}: {e.Message}\"); return null; } finally { // 清理资源 if (tempInstance != null) DestroyImmediate(tempInstance); if (cameraGO != null) DestroyImmediate(cameraGO); if (rt != null) RenderTexture.ReleaseTemporary(rt); } } Quaternion GetCameraRotation(ViewAxis axis) { switch (axis) { case ViewAxis.Front: return Quaternion.LookRotation(Vector3.forward, Vector3.up); case ViewAxis.Back: return Quaternion.LookRotation(Vector3.back, Vector3.up); case ViewAxis.Left: return Quaternion.LookRotation(Vector3.left, Vector3.up); case ViewAxis.Right: return Quaternion.LookRotation(Vector3.right, Vector3.up); case ViewAxis.Top: return Quaternion.LookRotation(Vector3.up, Vector3.forward); case ViewAxis.Bottom: return Quaternion.LookRotation(Vector3.down, Vector3.back); case ViewAxis.Isometric: return Quaternion.LookRotation(new Vector3(-1, -0.5f, -1).normalized, Vector3.up); case ViewAxis.IsometricOpposite: return Quaternion.LookRotation(new Vector3(1, -0.5f, 1).normalized, Vector3.up); default: return Quaternion.identity; } } void SetupBasicLighting(GameObject target) { // 检查是否已有光源 Light[] existingLights = Object.FindObjectsOfType(); if (existingLights.Length == 0) { // 创建基本的三点光源 CreateLight(new Vector3(-5, 5, 5), 1.0f, Color.white); // 主光 CreateLight(new Vector3(5, 3, 5), 0.5f, new Color(0.8f, 0.8f, 1.0f)); // 辅光 CreateLight(new Vector3(0, 10, 0), 0.3f, Color.white); // 顶光 } } void CreateLight(Vector3 position, float intensity, Color color) { GameObject lightGO = new GameObject(\"ThumbnailLight\"); Light light = lightGO.AddComponent(); light.type = LightType.Directional; lightGO.transform.position = position; lightGO.transform.LookAt(Vector3.zero); light.intensity = intensity; light.color = color; light.shadows = LightShadows.None; // 为了性能，禁用阴影 } Bounds CalculateBounds(GameObject obj) { Bounds bounds = new Bounds(obj.transform.position, Vector3.zero); bool hasBounds = false; // 获取所有Renderer组件 Renderer[] renderers = obj.GetComponentsInChildren(); if (renderers.Length \u003e 0) { bounds = renderers[0].bounds; hasBounds = true; foreach (Renderer renderer in renderers) { bounds.Encapsulate(renderer.bounds); } } // 如果没有Renderer，使用Collider if (!hasBounds) { Collider[] colliders = obj.GetComponentsInChildren(); if (colliders.Length \u003e 0) { bounds = colliders[0].bounds; hasBounds = true; foreach (Collider collider in colliders) { bounds.Encapsulate(collider.bounds); } } } // 如果仍然没有边界，使用MeshFilter if (!hasBounds) { MeshFilter[] meshFilters = obj.GetComponentsInChildren(); if (meshFilters.Length \u003e 0 \u0026\u0026 meshFilters[0].sharedMesh != null) { bounds = meshFilters[0].sharedMesh.bounds; bounds.center = obj.transform.position; hasBounds = true; foreach (MeshFilter meshFilter in meshFilters) { if (meshFilter.sharedMesh != null) { bounds.Encapsulate(meshFilter.sharedMesh.bounds); } } } } return bounds; } string GetValidFileName(string fileName) { char[] invalidChars = Path.GetInvalidFileNameChars(); foreach (char c in invalidChars) { fileName = fileName.Replace(c.ToString(), \"\"); } return fileName; } } // 扩展方法用于计算GameObject的边界 public static class GameObjectExtensions { public static Bounds GetBounds(this GameObject obj) { Bounds bounds = new Bounds(obj.transform.position, Vector3.zero); Renderer[] renderers = obj.GetComponentsInChildren(); if (renderers.Length \u003e 0) { bounds = renderers[0].bounds; foreach (Renderer renderer in renderers) { bounds.Encapsulate(renderer.bounds); } } return bounds; } } ","wordCount":"1044","inLanguage":"en","image":"https://ilunp.com/posts/note/unity-prefab-thumbnail/thumbnail-exporter.jpg","datePublished":"2026-03-14T15:06:33+08:00","dateModified":"2026-03-14T15:06:33+08:00","author":[{"@type":"Person","name":"ILUNP"}],"mainEntityOfPage":{"@type":"WebPage","@id":"https://ilunp.com/posts/note/unity-prefab-thumbnail/"},"publisher":{"@type":"Organization","name":"♪(^∇^*)","logo":{"@type":"ImageObject","url":"https://ilunp.com/favicon.ico"}}}</script></head><body id=top><header class=header><nav class=nav><div class=logo><a href=https://ilunp.com/ accesskey=h title="♪(^∇^*) (Alt + H)">♪(^∇^*)</a><div class=logo-switches><button id=theme-toggle accesskey=t title="(Alt + T)" aria-label="Toggle theme">
+<svg id="moon" width="24" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+<svg id="sun" width="24" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg></button></div></div><ul id=menu><li><a href=https://ilunp.com/posts/ title=文章><span>文章</span></a></li><li><a href=https://ilunp.com/archives/ title=归档><span>归档</span></a></li><li><a href=https://ilunp.com/about/ title=关于><span>关于</span></a></li></ul></nav></header><main class=main><article class=post-single><header class=post-header><h1 class="post-title entry-hint-parent">Unity Prefab 缩略图导出</h1><div class=post-meta><span title='2026-03-14 15:06:33 +0800 +0800'>2026-03-14</span>&nbsp;·&nbsp;<span>5 分钟</span>&nbsp;·&nbsp;<span>1044 字</span>&nbsp;·&nbsp;<span>ILUNP</span></div></header><figure class=entry-cover><img loading=eager src=https://ilunp.com/thumbnail-exporter.jpg alt><figcaption><text></figcaption></figure><div class=toc><details><summary accesskey=c title="(Alt + C)"><span class=details>目录</span></summary><div class=inner><ul><ul><li><a href=#1-%e5%a4%9a%e8%bd%b4%e5%90%91%e8%a7%86%e5%9b%be%e6%94%af%e6%8c%81 aria-label="1. 多轴向视图支持">1. 多轴向视图支持</a></li><li><a href=#2-%e7%9b%b8%e6%9c%ba%e6%8e%a7%e5%88%b6 aria-label="2. 相机控制">2. 相机控制</a></li><li><a href=#3-%e9%a2%84%e8%a7%88%e5%8a%9f%e8%83%bd aria-label="3. 预览功能">3. 预览功能</a></li><li><a href=#4-%e8%87%aa%e5%8a%a8%e7%81%af%e5%85%89 aria-label="4. 自动灯光">4. 自动灯光</a></li></ul><li><a href=#%e4%bd%bf%e7%94%a8%e8%af%b4%e6%98%8e aria-label=使用说明：>使用说明：</a></li><li><a href=#%e8%bd%b4%e5%90%91%e5%90%8e%e7%bc%80 aria-label=轴向后缀：>轴向后缀：</a></li><li><a href=#%e8%84%9a%e6%9c%ac%e4%bb%a3%e7%a0%81 aria-label=脚本代码>脚本代码</a></li></ul></div></details></div><div class=post-content><h3 id=1-多轴向视图支持>1. <strong>多轴向视图支持</strong><a hidden class=anchor aria-hidden=true href=#1-多轴向视图支持>#</a></h3><ul><li><strong>Front/Back</strong>: 前/后视图（±Z轴）</li><li><strong>Left/Right</strong>: 左/右视图（±X轴）</li><li><strong>Top/Bottom</strong>: 顶/底视图（±Y轴）</li><li><strong>Isometric</strong>: 等轴测视图（-X, -Y, -Z方向）</li><li><strong>IsometricOpposite</strong>: 相反方向的等轴测视图</li></ul><h3 id=2-相机控制>2. <strong>相机控制</strong><a hidden class=anchor aria-hidden=true href=#2-相机控制>#</a></h3><ul><li><strong>Auto Center</strong>: 自动根据轴向定位相机</li><li><strong>Custom Rotation</strong>: 手动设置旋转角度</li></ul><h3 id=3-预览功能>3. <strong>预览功能</strong><a hidden class=anchor aria-hidden=true href=#3-预览功能>#</a></h3><ul><li>在场景中创建临时实例</li><li>自动定位场景相机</li><li>方便调整角度后导出</li></ul><h3 id=4-自动灯光>4. <strong>自动灯光</strong><a hidden class=anchor aria-hidden=true href=#4-自动灯光>#</a></h3><ul><li>如果没有光源，自动创建基本的三点光源</li><li>确保物体被正确照亮</li></ul><h2 id=使用说明>使用说明：<a hidden class=anchor aria-hidden=true href=#使用说明>#</a></h2><ol><li><strong>选择轴向</strong>：从下拉菜单中选择需要的视图方向</li><li><strong>调整设置</strong>：分辨率、背景色、边距等</li><li><strong>预览</strong>：点击"Preview in Scene"查看效果</li><li><strong>导出</strong>：选择单个或多个Prefab导出</li></ol><h2 id=轴向后缀>轴向后缀：<a hidden class=anchor aria-hidden=true href=#轴向后缀>#</a></h2><p>导出的文件名会自动添加轴向信息，如：</p><ul><li><code>EmperorWalkingOverThere_Front_thumbnail.png</code></li><li><code>EmperorWalkingOverThere_Top_thumbnail.png</code></li><li><code>EmperorWalkingOverThere_Isometric_thumbnail.png</code></li></ul><h2 id=脚本代码>脚本代码<a hidden class=anchor aria-hidden=true href=#脚本代码>#</a></h2><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-csharp data-lang=csharp><span style=display:flex><span><span style=color:#66d9ef>using</span> UnityEditor;
+</span></span><span style=display:flex><span><span style=color:#66d9ef>using</span> UnityEngine;
+</span></span><span style=display:flex><span><span style=color:#66d9ef>using</span> System.IO;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>public</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>ThumbnailExportSettings</span> : EditorWindow
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>public</span> <span style=color:#66d9ef>int</span> width = <span style=color:#ae81ff>256</span>;
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>public</span> <span style=color:#66d9ef>int</span> height = <span style=color:#ae81ff>256</span>;
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>public</span> <span style=color:#66d9ef>bool</span> transparentBackground = <span style=color:#66d9ef>true</span>;
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>public</span> Color backgroundColor = Color.clear;
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>public</span> <span style=color:#66d9ef>int</span> padding = <span style=color:#ae81ff>10</span>;
+</span></span><span style=display:flex><span>    
+</span></span><span style=display:flex><span>    <span style=color:#75715e>// 轴向选择</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>public</span> <span style=color:#66d9ef>enum</span> ViewAxis
+</span></span><span style=display:flex><span>    {
+</span></span><span style=display:flex><span>        Front,
+</span></span><span style=display:flex><span>        Back,
+</span></span><span style=display:flex><span>        Left,
+</span></span><span style=display:flex><span>        Right,
+</span></span><span style=display:flex><span>        Top,
+</span></span><span style=display:flex><span>        Bottom,
+</span></span><span style=display:flex><span>        Isometric,
+</span></span><span style=display:flex><span>        IsometricOpposite
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>    
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>public</span> ViewAxis selectedAxis = ViewAxis.Front;
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>public</span> <span style=color:#66d9ef>bool</span> autoCenter = <span style=color:#66d9ef>true</span>;
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>public</span> Vector3 customRotation = Vector3.zero;
+</span></span><span style=display:flex><span><span style=color:#a6e22e>    
+</span></span></span><span style=display:flex><span><span style=color:#a6e22e>    [MenuItem(&#34;Tools/Prefab Thumbnail Exporter&#34;)]</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>static</span> <span style=color:#66d9ef>void</span> ShowWindow()
+</span></span><span style=display:flex><span>    {
+</span></span><span style=display:flex><span>        GetWindow&lt;ThumbnailExportSettings&gt;(<span style=color:#e6db74>&#34;Thumbnail Exporter&#34;</span>);
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>    
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>void</span> OnGUI()
+</span></span><span style=display:flex><span>    {
+</span></span><span style=display:flex><span>        GUILayout.Label(<span style=color:#e6db74>&#34;Thumbnail Settings&#34;</span>, EditorStyles.boldLabel);
+</span></span><span style=display:flex><span>        
+</span></span><span style=display:flex><span>        width = EditorGUILayout.IntField(<span style=color:#e6db74>&#34;Width&#34;</span>, Mathf.Max(<span style=color:#ae81ff>1</span>, width));
+</span></span><span style=display:flex><span>        height = EditorGUILayout.IntField(<span style=color:#e6db74>&#34;Height&#34;</span>, Mathf.Max(<span style=color:#ae81ff>1</span>, height));
+</span></span><span style=display:flex><span>        
+</span></span><span style=display:flex><span>        transparentBackground = EditorGUILayout.Toggle(<span style=color:#e6db74>&#34;Transparent Background&#34;</span>, transparentBackground);
+</span></span><span style=display:flex><span>        
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>if</span> (!transparentBackground)
+</span></span><span style=display:flex><span>        {
+</span></span><span style=display:flex><span>            backgroundColor = EditorGUILayout.ColorField(<span style=color:#e6db74>&#34;Background Color&#34;</span>, backgroundColor);
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>        
+</span></span><span style=display:flex><span>        padding = EditorGUILayout.IntField(<span style=color:#e6db74>&#34;Padding&#34;</span>, Mathf.Max(<span style=color:#ae81ff>0</span>, padding));
+</span></span><span style=display:flex><span>        
+</span></span><span style=display:flex><span>        GUILayout.Space(<span style=color:#ae81ff>10</span>);
+</span></span><span style=display:flex><span>        GUILayout.Label(<span style=color:#e6db74>&#34;Camera Settings&#34;</span>, EditorStyles.boldLabel);
+</span></span><span style=display:flex><span>        
+</span></span><span style=display:flex><span>        selectedAxis = (ViewAxis)EditorGUILayout.EnumPopup(<span style=color:#e6db74>&#34;View Axis&#34;</span>, selectedAxis);
+</span></span><span style=display:flex><span>        
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>if</span> (selectedAxis == ViewAxis.Isometric || selectedAxis == ViewAxis.IsometricOpposite)
+</span></span><span style=display:flex><span>        {
+</span></span><span style=display:flex><span>            EditorGUILayout.HelpBox(<span style=color:#e6db74>&#34;Isometric view combines multiple axes&#34;</span>, MessageType.Info);
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>        
+</span></span><span style=display:flex><span>        autoCenter = EditorGUILayout.Toggle(<span style=color:#e6db74>&#34;Auto Center Camera&#34;</span>, autoCenter);
+</span></span><span style=display:flex><span>        
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>if</span> (!autoCenter)
+</span></span><span style=display:flex><span>        {
+</span></span><span style=display:flex><span>            customRotation = EditorGUILayout.Vector3Field(<span style=color:#e6db74>&#34;Custom Rotation&#34;</span>, customRotation);
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>        
+</span></span><span style=display:flex><span>        GUILayout.Space(<span style=color:#ae81ff>10</span>);
+</span></span><span style=display:flex><span>        
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>if</span> (GUILayout.Button(<span style=color:#e6db74>&#34;Export Selected Prefab&#34;</span>, GUILayout.Height(<span style=color:#ae81ff>30</span>)))
+</span></span><span style=display:flex><span>        {
+</span></span><span style=display:flex><span>            ExportSelectedPrefab();
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>        
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>if</span> (GUILayout.Button(<span style=color:#e6db74>&#34;Export All Selected Prefabs&#34;</span>, GUILayout.Height(<span style=color:#ae81ff>30</span>)))
+</span></span><span style=display:flex><span>        {
+</span></span><span style=display:flex><span>            ExportAllSelectedPrefabs();
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>        
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>if</span> (GUILayout.Button(<span style=color:#e6db74>&#34;Preview in Scene&#34;</span>, GUILayout.Height(<span style=color:#ae81ff>25</span>)))
+</span></span><span style=display:flex><span>        {
+</span></span><span style=display:flex><span>            PreviewSelectedPrefab();
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>        
+</span></span><span style=display:flex><span>        GUILayout.Space(<span style=color:#ae81ff>10</span>);
+</span></span><span style=display:flex><span>        GUILayout.Label(<span style=color:#e6db74>&#34;Tips:&#34;</span>, EditorStyles.boldLabel);
+</span></span><span style=display:flex><span>        GUILayout.Label(<span style=color:#e6db74>&#34;• Front: +Z direction&#34;</span>, EditorStyles.miniLabel);
+</span></span><span style=display:flex><span>        GUILayout.Label(<span style=color:#e6db74>&#34;• Back: -Z direction&#34;</span>, EditorStyles.miniLabel);
+</span></span><span style=display:flex><span>        GUILayout.Label(<span style=color:#e6db74>&#34;• Left: -X direction&#34;</span>, EditorStyles.miniLabel);
+</span></span><span style=display:flex><span>        GUILayout.Label(<span style=color:#e6db74>&#34;• Right: +X direction&#34;</span>, EditorStyles.miniLabel);
+</span></span><span style=display:flex><span>        GUILayout.Label(<span style=color:#e6db74>&#34;• Top: +Y direction&#34;</span>, EditorStyles.miniLabel);
+</span></span><span style=display:flex><span>        GUILayout.Label(<span style=color:#e6db74>&#34;• Bottom: -Y direction&#34;</span>, EditorStyles.miniLabel);
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>    
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>void</span> ExportSelectedPrefab()
+</span></span><span style=display:flex><span>    {
+</span></span><span style=display:flex><span>        GameObject selectedPrefab = Selection.activeObject <span style=color:#66d9ef>as</span> GameObject;
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>if</span> (selectedPrefab == <span style=color:#66d9ef>null</span>)
+</span></span><span style=display:flex><span>        {
+</span></span><span style=display:flex><span>            Debug.LogError(<span style=color:#e6db74>&#34;Please select a Prefab in the Project window!&#34;</span>);
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>return</span>;
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>        
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>string</span> savePath = EditorUtility.SaveFilePanel(
+</span></span><span style=display:flex><span>            <span style=color:#e6db74>&#34;Save Thumbnail&#34;</span>,
+</span></span><span style=display:flex><span>            <span style=color:#e6db74>&#34;&#34;</span>,
+</span></span><span style=display:flex><span>            <span style=color:#e6db74>$&#34;{selectedPrefab.name}_{selectedAxis}_thumbnail&#34;</span>,
+</span></span><span style=display:flex><span>            <span style=color:#e6db74>&#34;png&#34;</span>);
+</span></span><span style=display:flex><span>        
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>if</span> (!<span style=color:#66d9ef>string</span>.IsNullOrEmpty(savePath))
+</span></span><span style=display:flex><span>        {
+</span></span><span style=display:flex><span>            Texture2D thumbnail = CapturePrefabThumbnail(selectedPrefab, width, height);
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>if</span> (thumbnail != <span style=color:#66d9ef>null</span>)
+</span></span><span style=display:flex><span>            {
+</span></span><span style=display:flex><span>                <span style=color:#66d9ef>byte</span>[] bytes = thumbnail.EncodeToPNG();
+</span></span><span style=display:flex><span>                File.WriteAllBytes(savePath, bytes);
+</span></span><span style=display:flex><span>                DestroyImmediate(thumbnail);
+</span></span><span style=display:flex><span>                Debug.Log(<span style=color:#e6db74>$&#34;Thumbnail saved to: {savePath}&#34;</span>);
+</span></span><span style=display:flex><span>            }
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>    
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>void</span> ExportAllSelectedPrefabs()
+</span></span><span style=display:flex><span>    {
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>string</span> outputFolder = EditorUtility.SaveFolderPanel(<span style=color:#e6db74>&#34;Select Output Folder&#34;</span>, <span style=color:#e6db74>&#34;&#34;</span>, <span style=color:#e6db74>&#34;&#34;</span>);
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>if</span> (<span style=color:#66d9ef>string</span>.IsNullOrEmpty(outputFolder)) <span style=color:#66d9ef>return</span>;
+</span></span><span style=display:flex><span>        
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>int</span> processed = <span style=color:#ae81ff>0</span>;
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>int</span> total = Selection.objects.Length;
+</span></span><span style=display:flex><span>        
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>for</span> (<span style=color:#66d9ef>int</span> i = <span style=color:#ae81ff>0</span>; i &lt; total; i++)
+</span></span><span style=display:flex><span>        {
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>var</span> obj = Selection.objects[i];
+</span></span><span style=display:flex><span>            
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>if</span> (obj <span style=color:#66d9ef>is</span> GameObject)
+</span></span><span style=display:flex><span>            {
+</span></span><span style=display:flex><span>                EditorUtility.DisplayProgressBar(<span style=color:#e6db74>&#34;Exporting Thumbnails&#34;</span>, 
+</span></span><span style=display:flex><span>                    <span style=color:#e6db74>$&#34;Processing: {obj.name} ({i + 1}/{total})&#34;</span>, 
+</span></span><span style=display:flex><span>                    (<span style=color:#66d9ef>float</span>)i / total);
+</span></span><span style=display:flex><span>                
+</span></span><span style=display:flex><span>                Texture2D thumbnail = CapturePrefabThumbnail(obj <span style=color:#66d9ef>as</span> GameObject, width, height);
+</span></span><span style=display:flex><span>                
+</span></span><span style=display:flex><span>                <span style=color:#66d9ef>if</span> (thumbnail != <span style=color:#66d9ef>null</span>)
+</span></span><span style=display:flex><span>                {
+</span></span><span style=display:flex><span>                    <span style=color:#66d9ef>byte</span>[] bytes = thumbnail.EncodeToPNG();
+</span></span><span style=display:flex><span>                    <span style=color:#66d9ef>string</span> fileName = GetValidFileName(<span style=color:#e6db74>$&#34;{obj.name}_{selectedAxis}&#34;</span>) + <span style=color:#e6db74>&#34;.png&#34;</span>;
+</span></span><span style=display:flex><span>                    File.WriteAllBytes(Path.Combine(outputFolder, fileName), bytes);
+</span></span><span style=display:flex><span>                    
+</span></span><span style=display:flex><span>                    DestroyImmediate(thumbnail);
+</span></span><span style=display:flex><span>                    processed++;
+</span></span><span style=display:flex><span>                }
+</span></span><span style=display:flex><span>                
+</span></span><span style=display:flex><span>                <span style=color:#66d9ef>if</span> (i % <span style=color:#ae81ff>5</span> == <span style=color:#ae81ff>0</span>) System.Threading.Thread.Sleep(<span style=color:#ae81ff>10</span>);
+</span></span><span style=display:flex><span>            }
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>        
+</span></span><span style=display:flex><span>        EditorUtility.ClearProgressBar();
+</span></span><span style=display:flex><span>        Debug.Log(<span style=color:#e6db74>$&#34;Finished exporting {processed} out of {total} thumbnails&#34;</span>);
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>    
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>void</span> PreviewSelectedPrefab()
+</span></span><span style=display:flex><span>    {
+</span></span><span style=display:flex><span>        GameObject selectedPrefab = Selection.activeObject <span style=color:#66d9ef>as</span> GameObject;
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>if</span> (selectedPrefab == <span style=color:#66d9ef>null</span>)
+</span></span><span style=display:flex><span>        {
+</span></span><span style=display:flex><span>            Debug.LogError(<span style=color:#e6db74>&#34;Please select a Prefab in the Project window!&#34;</span>);
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>return</span>;
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>        
+</span></span><span style=display:flex><span>        <span style=color:#75715e>// 在场景中创建临时实例用于预览</span>
+</span></span><span style=display:flex><span>        GameObject previewInstance = PrefabUtility.InstantiatePrefab(selectedPrefab) <span style=color:#66d9ef>as</span> GameObject;
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>if</span> (previewInstance == <span style=color:#66d9ef>null</span>)
+</span></span><span style=display:flex><span>        {
+</span></span><span style=display:flex><span>            previewInstance = Object.Instantiate(selectedPrefab);
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>        
+</span></span><span style=display:flex><span>        <span style=color:#75715e>// 定位场景相机</span>
+</span></span><span style=display:flex><span>        SceneView.lastActiveSceneView.Frame(previewInstance.GetBounds(), <span style=color:#66d9ef>true</span>);
+</span></span><span style=display:flex><span>        
+</span></span><span style=display:flex><span>        Debug.Log(<span style=color:#e6db74>$&#34;Preview instance created for {selectedPrefab.name}. Press Play to capture or delete the instance manually.&#34;</span>);
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>    
+</span></span><span style=display:flex><span>    Texture2D CapturePrefabThumbnail(GameObject prefab, <span style=color:#66d9ef>int</span> width, <span style=color:#66d9ef>int</span> height)
+</span></span><span style=display:flex><span>    {
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>if</span> (prefab == <span style=color:#66d9ef>null</span>) <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>null</span>;
+</span></span><span style=display:flex><span>        
+</span></span><span style=display:flex><span>        GameObject tempInstance = <span style=color:#66d9ef>null</span>;
+</span></span><span style=display:flex><span>        RenderTexture rt = <span style=color:#66d9ef>null</span>;
+</span></span><span style=display:flex><span>        Camera camera = <span style=color:#66d9ef>null</span>;
+</span></span><span style=display:flex><span>        GameObject cameraGO = <span style=color:#66d9ef>null</span>;
+</span></span><span style=display:flex><span>        
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>try</span>
+</span></span><span style=display:flex><span>        {
+</span></span><span style=display:flex><span>            <span style=color:#75715e>// 实例化Prefab</span>
+</span></span><span style=display:flex><span>            tempInstance = PrefabUtility.InstantiatePrefab(prefab) <span style=color:#66d9ef>as</span> GameObject;
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>if</span> (tempInstance == <span style=color:#66d9ef>null</span>)
+</span></span><span style=display:flex><span>            {
+</span></span><span style=display:flex><span>                tempInstance = Object.Instantiate(prefab);
+</span></span><span style=display:flex><span>            }
+</span></span><span style=display:flex><span>            
+</span></span><span style=display:flex><span>            <span style=color:#75715e>// 计算边界</span>
+</span></span><span style=display:flex><span>            Bounds bounds = CalculateBounds(tempInstance);
+</span></span><span style=display:flex><span>            
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>if</span> (bounds.size == Vector3.zero)
+</span></span><span style=display:flex><span>            {
+</span></span><span style=display:flex><span>                Debug.LogWarning(<span style=color:#e6db74>$&#34;Prefab {prefab.name} has no renderable bounds&#34;</span>);
+</span></span><span style=display:flex><span>                <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>null</span>;
+</span></span><span style=display:flex><span>            }
+</span></span><span style=display:flex><span>            
+</span></span><span style=display:flex><span>            <span style=color:#75715e>// 计算相机距离和位置</span>
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>float</span> maxSize = Mathf.Max(bounds.size.x, bounds.size.y, bounds.size.z);
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>float</span> distance = maxSize * <span style=color:#ae81ff>0.5f</span> + padding * <span style=color:#ae81ff>0.01f</span>;
+</span></span><span style=display:flex><span>            
+</span></span><span style=display:flex><span>            <span style=color:#75715e>// 设置渲染纹理</span>
+</span></span><span style=display:flex><span>            rt = RenderTexture.GetTemporary(width, height, <span style=color:#ae81ff>24</span>, RenderTextureFormat.ARGB32);
+</span></span><span style=display:flex><span>            
+</span></span><span style=display:flex><span>            <span style=color:#75715e>// 创建相机</span>
+</span></span><span style=display:flex><span>            cameraGO = <span style=color:#66d9ef>new</span> GameObject(<span style=color:#e6db74>&#34;ThumbnailCamera&#34;</span>);
+</span></span><span style=display:flex><span>            camera = cameraGO.AddComponent&lt;Camera&gt;();
+</span></span><span style=display:flex><span>            camera.clearFlags = transparentBackground ? 
+</span></span><span style=display:flex><span>                CameraClearFlags.SolidColor : CameraClearFlags.Color;
+</span></span><span style=display:flex><span>            camera.backgroundColor = transparentBackground ? Color.clear : backgroundColor;
+</span></span><span style=display:flex><span>            camera.orthographic = <span style=color:#66d9ef>true</span>;
+</span></span><span style=display:flex><span>            camera.orthographicSize = distance;
+</span></span><span style=display:flex><span>            camera.targetTexture = rt;
+</span></span><span style=display:flex><span>            camera.nearClipPlane = <span style=color:#ae81ff>0.01f</span>;
+</span></span><span style=display:flex><span>            camera.farClipPlane = <span style=color:#ae81ff>1000f</span>;
+</span></span><span style=display:flex><span>            
+</span></span><span style=display:flex><span>            <span style=color:#75715e>// 设置相机位置和旋转</span>
+</span></span><span style=display:flex><span>            Vector3 cameraPosition = bounds.center;
+</span></span><span style=display:flex><span>            Quaternion cameraRotation = GetCameraRotation(selectedAxis);
+</span></span><span style=display:flex><span>            
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>if</span> (autoCenter)
+</span></span><span style=display:flex><span>            {
+</span></span><span style=display:flex><span>                <span style=color:#75715e>// 根据轴向计算相机位置</span>
+</span></span><span style=display:flex><span>                Vector3 direction = cameraRotation * Vector3.back;
+</span></span><span style=display:flex><span>                cameraPosition += direction * (distance * <span style=color:#ae81ff>2f</span>);
+</span></span><span style=display:flex><span>            }
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>else</span>
+</span></span><span style=display:flex><span>            {
+</span></span><span style=display:flex><span>                cameraGO.transform.rotation = Quaternion.Euler(customRotation);
+</span></span><span style=display:flex><span>                cameraPosition += cameraGO.transform.forward * -(distance * <span style=color:#ae81ff>2f</span>);
+</span></span><span style=display:flex><span>            }
+</span></span><span style=display:flex><span>            
+</span></span><span style=display:flex><span>            cameraGO.transform.position = cameraPosition;
+</span></span><span style=display:flex><span>            cameraGO.transform.LookAt(bounds.center);
+</span></span><span style=display:flex><span>            
+</span></span><span style=display:flex><span>            <span style=color:#75715e>// 可选：添加简单的灯光</span>
+</span></span><span style=display:flex><span>            SetupBasicLighting(tempInstance);
+</span></span><span style=display:flex><span>            
+</span></span><span style=display:flex><span>            <span style=color:#75715e>// 渲染</span>
+</span></span><span style=display:flex><span>            camera.Render();
+</span></span><span style=display:flex><span>            
+</span></span><span style=display:flex><span>            <span style=color:#75715e>// 读取像素</span>
+</span></span><span style=display:flex><span>            Texture2D result = <span style=color:#66d9ef>new</span> Texture2D(width, height, TextureFormat.RGBA32, <span style=color:#66d9ef>false</span>);
+</span></span><span style=display:flex><span>            RenderTexture.active = rt;
+</span></span><span style=display:flex><span>            result.ReadPixels(<span style=color:#66d9ef>new</span> Rect(<span style=color:#ae81ff>0</span>, <span style=color:#ae81ff>0</span>, width, height), <span style=color:#ae81ff>0</span>, <span style=color:#ae81ff>0</span>);
+</span></span><span style=display:flex><span>            result.Apply();
+</span></span><span style=display:flex><span>            RenderTexture.active = <span style=color:#66d9ef>null</span>;
+</span></span><span style=display:flex><span>            
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>return</span> result;
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>catch</span> (System.Exception e)
+</span></span><span style=display:flex><span>        {
+</span></span><span style=display:flex><span>            Debug.LogError(<span style=color:#e6db74>$&#34;Error capturing thumbnail for {prefab.name}: {e.Message}&#34;</span>);
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>null</span>;
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>finally</span>
+</span></span><span style=display:flex><span>        {
+</span></span><span style=display:flex><span>            <span style=color:#75715e>// 清理资源</span>
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>if</span> (tempInstance != <span style=color:#66d9ef>null</span>) DestroyImmediate(tempInstance);
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>if</span> (cameraGO != <span style=color:#66d9ef>null</span>) DestroyImmediate(cameraGO);
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>if</span> (rt != <span style=color:#66d9ef>null</span>) RenderTexture.ReleaseTemporary(rt);
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>    
+</span></span><span style=display:flex><span>    Quaternion GetCameraRotation(ViewAxis axis)
+</span></span><span style=display:flex><span>    {
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>switch</span> (axis)
+</span></span><span style=display:flex><span>        {
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>case</span> ViewAxis.Front:
+</span></span><span style=display:flex><span>                <span style=color:#66d9ef>return</span> Quaternion.LookRotation(Vector3.forward, Vector3.up);
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>case</span> ViewAxis.Back:
+</span></span><span style=display:flex><span>                <span style=color:#66d9ef>return</span> Quaternion.LookRotation(Vector3.back, Vector3.up);
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>case</span> ViewAxis.Left:
+</span></span><span style=display:flex><span>                <span style=color:#66d9ef>return</span> Quaternion.LookRotation(Vector3.left, Vector3.up);
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>case</span> ViewAxis.Right:
+</span></span><span style=display:flex><span>                <span style=color:#66d9ef>return</span> Quaternion.LookRotation(Vector3.right, Vector3.up);
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>case</span> ViewAxis.Top:
+</span></span><span style=display:flex><span>                <span style=color:#66d9ef>return</span> Quaternion.LookRotation(Vector3.up, Vector3.forward);
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>case</span> ViewAxis.Bottom:
+</span></span><span style=display:flex><span>                <span style=color:#66d9ef>return</span> Quaternion.LookRotation(Vector3.down, Vector3.back);
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>case</span> ViewAxis.Isometric:
+</span></span><span style=display:flex><span>                <span style=color:#66d9ef>return</span> Quaternion.LookRotation(<span style=color:#66d9ef>new</span> Vector3(-<span style=color:#ae81ff>1</span>, -<span style=color:#ae81ff>0.5f</span>, -<span style=color:#ae81ff>1</span>).normalized, Vector3.up);
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>case</span> ViewAxis.IsometricOpposite:
+</span></span><span style=display:flex><span>                <span style=color:#66d9ef>return</span> Quaternion.LookRotation(<span style=color:#66d9ef>new</span> Vector3(<span style=color:#ae81ff>1</span>, -<span style=color:#ae81ff>0.5f</span>, <span style=color:#ae81ff>1</span>).normalized, Vector3.up);
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>default</span>:
+</span></span><span style=display:flex><span>                <span style=color:#66d9ef>return</span> Quaternion.identity;
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>    
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>void</span> SetupBasicLighting(GameObject target)
+</span></span><span style=display:flex><span>    {
+</span></span><span style=display:flex><span>        <span style=color:#75715e>// 检查是否已有光源</span>
+</span></span><span style=display:flex><span>        Light[] existingLights = Object.FindObjectsOfType&lt;Light&gt;();
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>if</span> (existingLights.Length == <span style=color:#ae81ff>0</span>)
+</span></span><span style=display:flex><span>        {
+</span></span><span style=display:flex><span>            <span style=color:#75715e>// 创建基本的三点光源</span>
+</span></span><span style=display:flex><span>            CreateLight(<span style=color:#66d9ef>new</span> Vector3(-<span style=color:#ae81ff>5</span>, <span style=color:#ae81ff>5</span>, <span style=color:#ae81ff>5</span>), <span style=color:#ae81ff>1.0f</span>, Color.white); <span style=color:#75715e>// 主光</span>
+</span></span><span style=display:flex><span>            CreateLight(<span style=color:#66d9ef>new</span> Vector3(<span style=color:#ae81ff>5</span>, <span style=color:#ae81ff>3</span>, <span style=color:#ae81ff>5</span>), <span style=color:#ae81ff>0.5f</span>, <span style=color:#66d9ef>new</span> Color(<span style=color:#ae81ff>0.8f</span>, <span style=color:#ae81ff>0.8f</span>, <span style=color:#ae81ff>1.0f</span>)); <span style=color:#75715e>// 辅光</span>
+</span></span><span style=display:flex><span>            CreateLight(<span style=color:#66d9ef>new</span> Vector3(<span style=color:#ae81ff>0</span>, <span style=color:#ae81ff>10</span>, <span style=color:#ae81ff>0</span>), <span style=color:#ae81ff>0.3f</span>, Color.white); <span style=color:#75715e>// 顶光</span>
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>    
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>void</span> CreateLight(Vector3 position, <span style=color:#66d9ef>float</span> intensity, Color color)
+</span></span><span style=display:flex><span>    {
+</span></span><span style=display:flex><span>        GameObject lightGO = <span style=color:#66d9ef>new</span> GameObject(<span style=color:#e6db74>&#34;ThumbnailLight&#34;</span>);
+</span></span><span style=display:flex><span>        Light light = lightGO.AddComponent&lt;Light&gt;();
+</span></span><span style=display:flex><span>        light.type = LightType.Directional;
+</span></span><span style=display:flex><span>        lightGO.transform.position = position;
+</span></span><span style=display:flex><span>        lightGO.transform.LookAt(Vector3.zero);
+</span></span><span style=display:flex><span>        light.intensity = intensity;
+</span></span><span style=display:flex><span>        light.color = color;
+</span></span><span style=display:flex><span>        light.shadows = LightShadows.None; <span style=color:#75715e>// 为了性能，禁用阴影</span>
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>    
+</span></span><span style=display:flex><span>    Bounds CalculateBounds(GameObject obj)
+</span></span><span style=display:flex><span>    {
+</span></span><span style=display:flex><span>        Bounds bounds = <span style=color:#66d9ef>new</span> Bounds(obj.transform.position, Vector3.zero);
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>bool</span> hasBounds = <span style=color:#66d9ef>false</span>;
+</span></span><span style=display:flex><span>        
+</span></span><span style=display:flex><span>        <span style=color:#75715e>// 获取所有Renderer组件</span>
+</span></span><span style=display:flex><span>        Renderer[] renderers = obj.GetComponentsInChildren&lt;Renderer&gt;();
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>if</span> (renderers.Length &gt; <span style=color:#ae81ff>0</span>)
+</span></span><span style=display:flex><span>        {
+</span></span><span style=display:flex><span>            bounds = renderers[<span style=color:#ae81ff>0</span>].bounds;
+</span></span><span style=display:flex><span>            hasBounds = <span style=color:#66d9ef>true</span>;
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>foreach</span> (Renderer renderer <span style=color:#66d9ef>in</span> renderers)
+</span></span><span style=display:flex><span>            {
+</span></span><span style=display:flex><span>                bounds.Encapsulate(renderer.bounds);
+</span></span><span style=display:flex><span>            }
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>        
+</span></span><span style=display:flex><span>        <span style=color:#75715e>// 如果没有Renderer，使用Collider</span>
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>if</span> (!hasBounds)
+</span></span><span style=display:flex><span>        {
+</span></span><span style=display:flex><span>            Collider[] colliders = obj.GetComponentsInChildren&lt;Collider&gt;();
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>if</span> (colliders.Length &gt; <span style=color:#ae81ff>0</span>)
+</span></span><span style=display:flex><span>            {
+</span></span><span style=display:flex><span>                bounds = colliders[<span style=color:#ae81ff>0</span>].bounds;
+</span></span><span style=display:flex><span>                hasBounds = <span style=color:#66d9ef>true</span>;
+</span></span><span style=display:flex><span>                <span style=color:#66d9ef>foreach</span> (Collider collider <span style=color:#66d9ef>in</span> colliders)
+</span></span><span style=display:flex><span>                {
+</span></span><span style=display:flex><span>                    bounds.Encapsulate(collider.bounds);
+</span></span><span style=display:flex><span>                }
+</span></span><span style=display:flex><span>            }
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>        
+</span></span><span style=display:flex><span>        <span style=color:#75715e>// 如果仍然没有边界，使用MeshFilter</span>
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>if</span> (!hasBounds)
+</span></span><span style=display:flex><span>        {
+</span></span><span style=display:flex><span>            MeshFilter[] meshFilters = obj.GetComponentsInChildren&lt;MeshFilter&gt;();
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>if</span> (meshFilters.Length &gt; <span style=color:#ae81ff>0</span> &amp;&amp; meshFilters[<span style=color:#ae81ff>0</span>].sharedMesh != <span style=color:#66d9ef>null</span>)
+</span></span><span style=display:flex><span>            {
+</span></span><span style=display:flex><span>                bounds = meshFilters[<span style=color:#ae81ff>0</span>].sharedMesh.bounds;
+</span></span><span style=display:flex><span>                bounds.center = obj.transform.position;
+</span></span><span style=display:flex><span>                hasBounds = <span style=color:#66d9ef>true</span>;
+</span></span><span style=display:flex><span>                <span style=color:#66d9ef>foreach</span> (MeshFilter meshFilter <span style=color:#66d9ef>in</span> meshFilters)
+</span></span><span style=display:flex><span>                {
+</span></span><span style=display:flex><span>                    <span style=color:#66d9ef>if</span> (meshFilter.sharedMesh != <span style=color:#66d9ef>null</span>)
+</span></span><span style=display:flex><span>                    {
+</span></span><span style=display:flex><span>                        bounds.Encapsulate(meshFilter.sharedMesh.bounds);
+</span></span><span style=display:flex><span>                    }
+</span></span><span style=display:flex><span>                }
+</span></span><span style=display:flex><span>            }
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>        
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> bounds;
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>    
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>string</span> GetValidFileName(<span style=color:#66d9ef>string</span> fileName)
+</span></span><span style=display:flex><span>    {
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>char</span>[] invalidChars = Path.GetInvalidFileNameChars();
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>foreach</span> (<span style=color:#66d9ef>char</span> c <span style=color:#66d9ef>in</span> invalidChars)
+</span></span><span style=display:flex><span>        {
+</span></span><span style=display:flex><span>            fileName = fileName.Replace(c.ToString(), <span style=color:#e6db74>&#34;&#34;</span>);
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> fileName;
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>// 扩展方法用于计算GameObject的边界</span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>public</span> <span style=color:#66d9ef>static</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>GameObjectExtensions</span>
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>public</span> <span style=color:#66d9ef>static</span> Bounds GetBounds(<span style=color:#66d9ef>this</span> GameObject obj)
+</span></span><span style=display:flex><span>    {
+</span></span><span style=display:flex><span>        Bounds bounds = <span style=color:#66d9ef>new</span> Bounds(obj.transform.position, Vector3.zero);
+</span></span><span style=display:flex><span>        Renderer[] renderers = obj.GetComponentsInChildren&lt;Renderer&gt;();
+</span></span><span style=display:flex><span>        
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>if</span> (renderers.Length &gt; <span style=color:#ae81ff>0</span>)
+</span></span><span style=display:flex><span>        {
+</span></span><span style=display:flex><span>            bounds = renderers[<span style=color:#ae81ff>0</span>].bounds;
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>foreach</span> (Renderer renderer <span style=color:#66d9ef>in</span> renderers)
+</span></span><span style=display:flex><span>            {
+</span></span><span style=display:flex><span>                bounds.Encapsulate(renderer.bounds);
+</span></span><span style=display:flex><span>            }
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>        
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> bounds;
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div></div><footer class=post-footer><ul class=post-tags><li><a href=https://ilunp.com/tags/untagged/>Untagged</a></li></ul><nav class=paginav><a class=next href=https://ilunp.com/posts/note/deadline-download/><span class=title>下一页 »</span><br><span>Deadline 10.4.2.3 下载链接</span></a></nav></footer></article></main><footer class=footer><span>&copy; 2026 <a href=https://ilunp.com/>♪(^∇^*)</a></span> ·
+<span>◉ <a href=https://github.com/adityatelange/hugo-PaperMod/ rel=noopener target=_blank>PaperMod</a>
+◉ 萌ICP备 <a href="https://icp.gov.moe/?keyword=20223303" rel=noopener target=_blank>20223303</a> 号</span></footer><a href=#top aria-label="go to top" title="Go to Top (Alt + G)" class=top-link id=top-link accesskey=g><svg viewBox="0 0 12 6" fill="currentColor"><path d="M12 6H0l6-6z"/></svg>
+</a><script data-num=1 data-interval=1000 data-speed=10 data-snow data-color=#d9e2e7 type=text/javascript>(function(){const e=document.currentScript.dataset,t={snow:e.snow?e.snow.split(","):["🐎",""],color:e.color||"#d9e2e7",speed:e.speed?parseInt(e.speed,10):10,dom:document.getElementsByTagName("body")[0],interval:e.interval?parseInt(e.interval,10):1e3,num:e.num?parseInt(e.num,10):1},n=document.createElement("div");o(n,{width:"100%",height:"100%",position:"fixed",top:0,left:0,pointerEvents:"none",zIndex:100}),setInterval(()=>{for(let e=0;e<t.num;e++)i()},t.interval);function i(){const e=document.createElement("div"),i=s(2,5)*.3;e.innerText=t.snow[s(0,t.snow.length-1)],o(e,{display:"inline-block",color:t.color,fontSize:s(18,24)*i+"px",position:"absolute",top:0,left:s(0,100)+"%",transition:"transform "+t.speed/(i*.8)+"s linear,opacity "+t.speed/(i*.8)+"s linear",transform:"translateY(-100%)",opacity:Math.random()*i+.3*i}),setTimeout(()=>{o(e,{transform:"translate(0, "+getComputedStyle(n).height+") rotate(480deg)",opacity:0}),e.addEventListener("transitionend",()=>{e.remove()})},100),n.appendChild(e)}function s(e,t){return e+Math.floor(Math.random()*(t-e+1))}function o(e,t){for(let n in t)e.style[n]=t[n]}t.dom.appendChild(n)})()</script><script>let menu=document.getElementById("menu");if(menu){const e=localStorage.getItem("menu-scroll-position");e&&(menu.scrollLeft=parseInt(e,10)),menu.onscroll=function(){localStorage.setItem("menu-scroll-position",menu.scrollLeft)}}document.querySelectorAll('a[href^="#"]').forEach(e=>{e.addEventListener("click",function(e){e.preventDefault();var t=this.getAttribute("href").substr(1);window.matchMedia("(prefers-reduced-motion: reduce)").matches?document.querySelector(`[id='${decodeURIComponent(t)}']`).scrollIntoView():document.querySelector(`[id='${decodeURIComponent(t)}']`).scrollIntoView({behavior:"smooth"}),t==="top"?history.replaceState(null,null," "):history.pushState(null,null,`#${t}`)})})</script><script>var mybutton=document.getElementById("top-link");window.onscroll=function(){document.body.scrollTop>800||document.documentElement.scrollTop>800?(mybutton.style.visibility="visible",mybutton.style.opacity="1"):(mybutton.style.visibility="hidden",mybutton.style.opacity="0")}</script><script>document.getElementById("theme-toggle").addEventListener("click",()=>{const e=document.querySelector("html");e.dataset.theme==="dark"?(e.dataset.theme="light",localStorage.setItem("pref-theme","light")):(e.dataset.theme="dark",localStorage.setItem("pref-theme","dark"))})</script><script>document.querySelectorAll("pre > code").forEach(e=>{const n=e.parentNode.parentNode,t=document.createElement("button");t.classList.add("copy-code"),t.innerHTML="复制";function s(){t.innerHTML="已复制！",setTimeout(()=>{t.innerHTML="复制"},2e3)}t.addEventListener("click",t=>{if("clipboard"in navigator){navigator.clipboard.writeText(e.textContent),s();return}const n=document.createRange();n.selectNodeContents(e);const o=window.getSelection();o.removeAllRanges(),o.addRange(n);try{document.execCommand("copy"),s()}catch{}o.removeRange(n)}),n.classList.contains("highlight")?n.appendChild(t):n.parentNode.firstChild==n||(e.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName=="TABLE"?e.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(t):e.parentNode.appendChild(t))})</script></body></html>
