@@ -1,5 +1,5 @@
 +++
-title = 'Deadline Download'
+title = 'Deadline 10.4.2.3 下载链接'
 description = ''
 date = 2026-02-06T00:58:29+08:00
 
@@ -20,4 +20,6 @@ categories = ['']
     
 +++
 
-10.4.2.3: [Windows](https://thinkbox-installers.s3.us-west-2.amazonaws.com/Releases/Deadline/10.4/9_10.4.2.3/Deadline-10.4.2.3-windows-installers.zip) · [Linux](https://thinkbox-installers.s3.us-west-2.amazonaws.com/Releases/Deadline/10.4/9_10.4.2.3/Deadline-10.4.2.3-linux-installers.tar)
+## Deadline 10.4.2.3: 
+* [Windows](https://thinkbox-installers.s3.us-west-2.amazonaws.com/Releases/Deadline/10.4/9_10.4.2.3/Deadline-10.4.2.3-windows-installers.zip) 
+* [Linux](https://thinkbox-installers.s3.us-west-2.amazonaws.com/Releases/Deadline/10.4/9_10.4.2.3/Deadline-10.4.2.3-linux-installers.tar)
