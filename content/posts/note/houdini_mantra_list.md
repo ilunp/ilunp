@@ -20,6 +20,23 @@ categories = ['']
     
 +++
 
+该脚本用于在 `/obj` 级别创建一个名为 `MANTRA_VECTOR_MONITOR` 的监控节点，集中显示和管理场景中所有 Mantra 渲染节点的帧范围。
+
+## 概述
+`MANTRA_VECTOR_MONITOR` 是一个 `Houdini` 场景监控工具，以一个自定义 `Null` 节点的形式存在于 `/obj` 上下文中。它会自动扫描 `/out` 网络中所有的 `Mantra` 渲染节点，并将其帧范围（f1、f2、f3）以只读的向量参数形式聚合展示，同时提供快速跳转功能。
+
+### 主要用途：
+- 在一个统一的控制面板中概览所有 `Mantra` 节点的渲染帧设置。
+- 快速定位并打开特定的渲染节点网络。
+- 可视化区分不同的帧范围模式（`Single` / `Range` / `Range Strict`）。
+
+## 安装
+将完整脚本复制粘贴到 `Houdini` 的 `Python Source Editor` 中，或在 `Python Shell` 内逐段执行：
+1. **方法 A（推荐）**：在菜单栏选择 `Windows -> Python Source Editor`，将全部代码粘贴进去，点击 `Apply` 或运行按钮。
+2. **方法 B**：在 `Windows -> Python Shell` 中逐段粘贴并回车执行。
+
+脚本执行完后，会自动在 `/obj` 节点树下创建名为 `MANTRA_VECTOR_MONITOR` 的节点，并立即执行首次刷新。您可以在 `Network View` 中看到该节点。
+
 ```python
 import hou
 
