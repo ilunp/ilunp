@@ -20,6 +20,8 @@ hidemeta = true
 
 {{< link url="https://0u0.ren" logo="https://avatars.githubusercontent.com/u/44718819?v=4" name="MiaoMint" word="小菜喵~" >}}
 
+{{< link url="https://notes.core.kylin.ac.cn/" logo="https://q1.qlogo.cn/g?b=qq&nk=21773791&s=100" name="赵家万" word="迷失的人迷失了，相逢的人会再相逢" >}}
+
 {{< link url="https://atlinker.cn/" logo="https://atlinker.cn/avatar/avatar.png" name="Link" word="Just 4 Fun" >}}
 
 {{< link url="https://ohmyga.cn/" logo="https://avatars.githubusercontent.com/u/40896676?v=4" name="Ohmyga" word="一只想咸鱼翻身的萌新" >}}
