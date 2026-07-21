@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main  # Set a branch to deploy
-  pull_request:
+  workflow_dispatch:
 
 permissions: 
   contents: write
@@ -19,6 +19,16 @@ jobs:
         with:
           submodules: true  # Fetch Hugo themes (true OR recursive)
           fetch-depth: 0    # Fetch all history for .GitInfo and .Lastmod
+
+      - name: Get Games Data
+        env:
+          STEAM_KEY: ${{ secrets.STEAM_KEY }}
+          STEAM_ID: ${{ secrets.STEAM_ID }}
+        run: |
+          mkdir -p data
+          curl -s "https://api.steampowered.com/IPlayerService/GetOwnedGames/v1/?key=${STEAM_KEY}&steamid=${STEAM_ID}&format=json&include_appinfo=true&include_played_free_games=true" \
+          | jq '.response | {game_count: [.games[] | select(.playtime_forever > 600)] | length, games: [.games[] | select(.playtime_forever > 600)] | sort_by(-.playtime_forever)}' \
+          > data/game.json
 
       - name: Setup Hugo
         uses: peaceiris/actions-hugo@v2

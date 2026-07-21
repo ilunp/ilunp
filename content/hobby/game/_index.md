@@ -4,7 +4,7 @@ description = '好玩！'
 
 hidemeta = true
 
-layout = 'cards'
+layout = 'game'
 +++
 
 ---
