@@ -20,7 +20,7 @@
           {{ range $data.games }}
             <div style="background: var(--entry); border-radius: 8px; padding: 0.75rem; text-align: center; transition: transform 0.2s, box-shadow 0.2s; border: 1px solid var(--border);">
               <a href="https://store.steampowered.com/app/{{ .appid }}/" target="_blank" rel="noopener" style="text-decoration: none; color: var(--primary);">
-                <img src="https://steamcdn-a.akamaihd.net/steam/apps/{{ .appid }}/header.jpg" 
+                <img src="https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/{{ .appid }}/header.jpg" 
                      alt="{{ .name }}" 
                      loading="lazy"
                      style="width: 100%; border-radius: 4px; margin-bottom: 0.5rem;">
