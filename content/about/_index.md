@@ -20,7 +20,7 @@ hidemeta = true
 
 {{< link url="https://0u0.ren" logo="https://avatars.githubusercontent.com/u/44718819?v=4" name="MiaoMint" word="小菜喵~" >}}
 
-{{< link url="https://notes.core.kylin.ac.cn/" logo="https://notes.core.kylin.ac.cn/usr/themes/handsome/assets/img/avatar.png" name="远山" word="Notes on reading, travel and slow living" >}}
+{{< link url="https://echo.core.kylin.ac.cn/" logo="https://images.core.kylin.ac.cn/upload/2026/08/30/20260830235812-f674f70c.jpg" name="远山" word="Notes on reading, travel and slow living" >}}
 
 {{< link url="https://atlinker.cn/" logo="https://atlinker.cn/avatar/avatar.png" name="Link" word="Just 4 Fun" >}}
 
