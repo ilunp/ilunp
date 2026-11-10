@@ -1,7 +1,7 @@
 baseURL = 'https://ilunp.com/'
 languageCode = 'zh'
 title = '♪(^∇^*)'
-theme = ['PaperMod', 'hugo-shortcode-gallery']
+theme = ['PaperMod', 'hugo-shortcode-gallery', 'eink']
 
 enableEmoji = true
 

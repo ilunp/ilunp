@@ -1,0 +1,132 @@
+{{- /*
+  墨水屏传图工具。在 Markdown 正文中调用 eink-upload shortcode，每页仅一次（脚本使用固定元素 id）。
+  CSS/JS 来自 assets/eink/，经 Hugo Pipes 注入；未使用本 shortcode 的页面不会加载。
+  不使用 .Page.Store 去重：hugo server 的 Fast Render Mode 会跨重建保留 Store，导致热更新后工具消失。
+*/ -}}
+{{- $css := resources.Get "eink/eink-upload.css" -}}
+{{- $core := resources.Get "eink/eink-core.js" | fingerprint -}}
+{{- $ui := resources.Get "eink/eink-upload.js" | fingerprint -}}
+<style>{{ $css.Content | safeCSS }}</style>
+<div class="eink-upload">
+<div class="wrap">
+  <header>
+    <p class="eink-title">3.7″ 六色墨水屏 · 原生 Web 传图</p>
+  </header>
+  <div class="grid">
+    <section class="card">
+      <div class="eink-h2">1 · 连接</div>
+      <div class="row">
+        <button id="btnConnect">连接串口</button>
+        <span id="connState" class="badge">未连接</span>
+      </div>
+      <p class="hint" id="compat"></p>
+
+      <div class="eink-h2">2 · 画面来源</div>
+      <div class="row">
+        <label class="filebtn">选择图片<input type="file" id="fileImage" accept="image/*" hidden></label>
+        <label class="filebtn ghost">选择 .bin 帧<input type="file" id="fileFrame" accept=".bin" hidden></label>
+      </div>
+      <p class="hint" id="fileName">未选择文件</p>
+
+      <div class="eink-h2">3 · 参数</div>
+      <p class="hint mode-note" id="modeNote"></p>
+
+      <div class="grp">
+        <div class="grp-title">模式与安装</div>
+        <div class="fields">
+          <label class="opt" data-id="mode">显示模式
+            <select id="mode"><option value="otp" selected>otp 六色（默认）</option><option value="qual512">qual512 · 完整 512 色（推荐）</option><option value="qual384">qual384 · OTP 384 色（略亮）</option><option value="fast512">fast512 · Fast 512 色（偏亮）</option></select>
+          </label>
+          <label class="opt" data-id="rotate">屏幕安装方向
+            <select id="rotate"><option value="180" selected>180°（当前）</option><option value="0">0°</option></select>
+          </label>
+        </div>
+      </div>
+
+      <div class="grp">
+        <div class="grp-title">构图</div>
+        <div class="fields">
+          <label class="opt" data-id="orient">自动方向
+            <select id="orient"><option value="auto">auto（按尺寸）</option><option value="none">不旋转</option><option value="cw">顺时针 90°</option><option value="ccw">逆时针 90°</option></select>
+          </label>
+          <label class="opt" data-id="fit">填充方式
+            <select id="fit"><option value="auto">auto</option><option value="cover">cover 裁切铺满</option><option value="contain">contain 留白完整</option></select>
+          </label>
+          <label class="opt" data-id="pad">留白颜色（contain 有效）
+            <select id="pad"><option value="auto" selected>auto（沿用白边）</option><option value="white">白（纯色）</option><option value="black">黑</option><option value="yellow">黄</option><option value="red">红</option><option value="blue">蓝</option><option value="green">绿</option></select>
+          </label>
+        </div>
+      </div>
+
+      <div class="grp">
+        <div class="grp-title">量化与抖动</div>
+        <div class="fields">
+          <label class="opt" data-id="dither">抖动算法
+            <select id="dither"><option value="fs" selected>fs Floyd–Steinberg 误差扩散（默认）</option><option value="atkinson">Atkinson 高对比</option><option value="sierra">Sierra-3 三行细腻</option><option value="bayer">Bayer 8×8 有序网点</option><option value="multi">Bayer 8+16 多频</option><option value="noise64">低差异 64×64（类蓝噪声）</option><option value="none">none 纯最近色</option></select>
+          </label>
+          <label class="opt" data-id="quality">混色质量
+            <select id="quality"><option value="fast">fast</option><option value="standard">standard</option><option value="best" selected>best</option></select>
+          </label>
+          <label class="opt" data-id="style">呈现风格
+            <select id="style"><option value="photo" selected>photo</option><option value="illustration">illustration</option><option value="flat">flat</option></select>
+          </label>
+          <label class="opt" data-id="denoise">六色降噪
+            <select id="denoise"><option value="off">off</option><option value="balanced" selected>balanced</option><option value="strong">strong</option></select>
+          </label>
+          <label class="check opt" data-id="serp"><input type="checkbox" id="serp" checked>蛇形扫描（仅 fs / atkinson / sierra 有效）</label>
+          <label class="check opt" data-id="gray"><input type="checkbox" id="gray">只用黑白两色</label>
+        </div>
+      </div>
+
+      <div class="grp">
+        <div class="grp-title">影调</div>
+        <div class="adv">
+          <label class="opt" data-id="exposure">
+            <span class="slabel">曝光 EV <output id="exposureVal">0 EV</output></span>
+            <input type="range" id="exposure" min="-2" max="2" step="0.25" value="0">
+            <span class="ticks"><span>-2</span><span>-1</span><span>0</span><span>+1</span><span>+2</span></span>
+          </label>
+          <label class="opt" data-id="contrast">
+            <span class="slabel">对比度 <output id="contrastVal">1.00</output></span>
+            <input type="range" id="contrast" min="0.5" max="2" step="0.05" value="1">
+            <span class="ticks"><span>0.5</span><span>1</span><span>1.5</span><span>2</span></span>
+          </label>
+          <label class="opt" data-id="saturation">
+            <span class="slabel">饱和度 <output id="saturationVal">1.00</output></span>
+            <input type="range" id="saturation" min="0" max="2" step="0.05" value="1">
+            <span class="ticks"><span>0</span><span>0.5</span><span>1</span><span>1.5</span><span>2</span></span>
+          </label>
+          <label class="opt" data-id="brightness">
+            <span class="slabel">亮度 <output id="brightnessVal">0</output></span>
+            <input type="range" id="brightness" min="-64" max="64" step="1" value="0">
+            <span class="ticks"><span>-64</span><span>-32</span><span>0</span><span>+32</span><span>+64</span></span>
+          </label>
+          <div class="resetrow">
+            <button id="btnAdvReset" class="ghost" type="button">重置色彩参数</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <button id="btnGen" class="primary">生成预览</button>
+        <button id="btnPush" class="accent" disabled>推送到屏幕</button>
+      </div>
+      <div class="row">
+        <button id="btnSave" class="ghost" disabled>下载 .bin 帧</button>
+        <span id="fnvLabel" class="mono"></span>
+      </div>
+
+      <div class="eink-h2">日志</div>
+      <div class="progress"><div id="bar"></div></div>
+      <pre id="log"></pre>
+    </section>
+
+    <section class="card preview">
+      <div class="eink-h2">屏幕预览</div>
+      <canvas id="cv" width="480" height="720"></canvas>
+    </section>
+  </div>
+</div>
+</div>
+<script src="{{ $core.RelPermalink }}" integrity="{{ $core.Data.Integrity }}" crossorigin="anonymous"></script>
+<script src="{{ $ui.RelPermalink }}" integrity="{{ $ui.Data.Integrity }}" crossorigin="anonymous"></script>

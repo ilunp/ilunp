@@ -1,0 +1,3 @@
+name = "eink"
+description = "3.7 inch six-color e-ink Web Serial uploader, as a Hugo shortcode theme component"
+min_version = "0.121.2"
